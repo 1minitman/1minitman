@@ -236,8 +236,9 @@ gh api -X POST repos/1minitman/1minitman/rulesets --input .github/rulesets/devel
 gh api -X POST repos/1minitman/1minitman/rulesets --input .github/rulesets/production.json
 ```
 
-What they enforce: no direct pushes, no force pushes, no deleting the branch, a pull request with one
-approving code-owner review, resolved conversations, and a green `verify` check. `develop` takes
+What they enforce: no direct pushes, no force pushes, no deleting the branch, signed commits, a pull
+request with one approving code-owner review (never the author), resolved conversations, a green
+`verify` check and no new high-severity CodeQL finding. `develop` takes
 squash merges only; `production` takes merge commits only.
 
 Also switch on, under **Settings → Code security**: secret scanning, push protection, Dependabot
@@ -246,6 +247,20 @@ alerts and private vulnerability reporting (all free on a public repository).
 The repository is **public**: anyone can read both branches. Rules control who can change them, not
 who can see them. If `production` must not be readable, make the repository private (branch rules
 on a private repository need a paid GitHub plan).
+
+### Security habits
+
+- **A leaked secret is a dead secret.** If a key ever reaches GitHub, revoke and replace it at the
+  vendor straight away. Deleting the commit is not enough; bots copy public commits within minutes.
+- **Three nets catch secrets:** the pre-commit hook on your machine (install `gitleaks` with
+  `brew install gitleaks` for the deeper scan), GitHub push protection, and the CI secret scan.
+- **Sign your commits** (`git config commit.gpgsign true` with an SSH or GPG key added to GitHub).
+  Merges made by GitHub are signed for you; the protected branches refuse anything unsigned.
+- **Turn on two-factor sign-in** with a passkey or security key on every account with access.
+- **Tokens:** use fine-grained, expiring tokens limited to this repository, never a classic
+  all-access token.
+- **Outside contributors** work from forks. Their pull requests do not run CI until a maintainer
+  approves the run, and CI never has write access or secrets for fork code.
 
 CI (`.github/workflows/ci.yml`) runs on every pull request: secret scan, format, lint, banned
 terms, the full schema on PostgreSQL 16 + PostGIS, generated-client check, type-check, tests, builds.
