@@ -181,7 +181,7 @@ All chosen for near-zero fixed cost (owner decisions OD-06 and OD-11). "When" sa
 | ------------------- | ---------------------------------------------------- | ------------------------- | ------------------------------------------------------ | ------------------------ |
 | Docker Desktop      | Local database and Redis                             | Free                      | docker.com                                             | Now                      |
 | Expo / EAS          | Building and updating the app                        | Free tier                 | expo.dev (account `minitnetwork`, project `1minitman`) | App builds               |
-| GitHub              | Code, reviews, CI                                    | Free (public repo)        | github.com/1minitnetwork-png/1minitman                 | Now                      |
+| GitHub              | Code, reviews, CI                                    | Free (public repo)        | github.com/1minitman/1minitman                         | Now                      |
 | Neon                | Hosted PostgreSQL + PostGIS (Frankfurt)              | Free tier                 | console.neon.tech                                      | First hosted environment |
 | Upstash             | Hosted Redis (Frankfurt)                             | Free tier                 | console.upstash.com                                    | First hosted environment |
 | Railway             | Runs the API and worker (EU West)                    | Small usage-based fee     | railway.com                                            | First hosted environment |
@@ -232,8 +232,8 @@ down in `.github/rulesets/` so nothing has to be typed by hand:
 Or from a terminal signed in as the owner:
 
 ```bash
-gh api -X POST repos/1minitnetwork-png/1minitman/rulesets --input .github/rulesets/develop.json
-gh api -X POST repos/1minitnetwork-png/1minitman/rulesets --input .github/rulesets/production.json
+gh api -X POST repos/1minitman/1minitman/rulesets --input .github/rulesets/develop.json
+gh api -X POST repos/1minitman/1minitman/rulesets --input .github/rulesets/production.json
 ```
 
 What they enforce: no direct pushes, no force pushes, no deleting the branch, a pull request with one
