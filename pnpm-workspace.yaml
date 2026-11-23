@@ -20,6 +20,8 @@ catalog:
   bun: 1.4.5
   '@types/bun': ^1.4.5
   '@tanstack/react-query': ^5.108.4
+  # React Native is pinned to the exact version the Expo SDK ships with, everywhere.
+  react-native: 0.88.1
 
 # pnpm 10 runs install scripts only for packages listed here.
 onlyBuiltDependencies:
@@ -40,3 +42,6 @@ strictDepBuilds: true
 # Never resolve a version published less than 3 days ago (minutes): most malicious releases are
 # caught and unpublished within that window.
 minimumReleaseAge: 4320
+# Refuse a version whose publishing trust is weaker than an earlier version of the same package
+# (for example signed provenance yesterday, a plain token upload today: a stolen-token pattern).
+trustPolicy: no-downgrade

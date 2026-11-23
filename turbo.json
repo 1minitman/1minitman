@@ -16,12 +16,22 @@
     },
     "openapi:emit": {
       "dependsOn": ["^build"],
-      "cache": false
+      "inputs": [
+        "src/**",
+        "../../packages/contracts/src/routes/**",
+        "../../packages/contracts/src/schemas/**"
+      ],
+      "outputs": ["../../packages/contracts/openapi/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
+    },
+    "generate": {
+      "dependsOn": ["@1minitman/api#openapi:emit"],
+      "inputs": ["openapi/**", "scripts/**"],
+      "outputs": ["src/generated/**"]
     }
   },
   "remoteCache": {
