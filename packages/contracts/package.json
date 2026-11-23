@@ -1,0 +1,34 @@
+{
+  "name": "@1minitman/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The API contract: zod schemas, route definitions and the typed client generated from the OpenAPI documents.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./routes": "./src/routes/index.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@hono/zod-openapi": "catalog:"
+  },
+  "peerDependenciesMeta": {
+    "@hono/zod-openapi": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@hono/zod-openapi": "catalog:",
+    "hono": "catalog:",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "catalog:"
+  }
+}

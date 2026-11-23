@@ -1,0 +1,28 @@
+{
+  "name": "@1minitman/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PostgreSQL 16 + PostGIS schema (v3.4), numbered SQL migrations, the migration runner and the Drizzle client.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts"
+  },
+  "scripts": {
+    "migrate": "bun --env-file=../../.env.development src/cli/migrate.ts up",
+    "status": "bun --env-file=../../.env.development src/cli/migrate.ts status",
+    "pull": "bun --env-file=../../.env.development --bun drizzle-kit pull && node scripts/post-pull.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "bun --env-file=../../.env.development test"
+  },
+  "dependencies": {
+    "drizzle-orm": "catalog:",
+    "postgres": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "bun": "catalog:",
+    "drizzle-kit": "^0.31.11",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /get
+Disallow: /s/
+Disallow: /app/
+Disallow: /newsletter/
+Disallow: /help/search
+Disallow: /*?*utm_

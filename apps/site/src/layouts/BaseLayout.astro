@@ -1,0 +1,66 @@
+---
+import { LOCALES, type Locale } from '@1minitman/i18n';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { HTML_LANG, localizedPath } from '../lib/i18n';
+import '../styles/global.css';
+
+interface Props {
+  locale: Locale;
+  /** Page title, 60 characters at most. */
+  title: string;
+  /** Meta description, 155 characters at most. */
+  description: string;
+  /** Path without the locale prefix, e.g. "/" or "/plans". */
+  path: string;
+  noindex?: boolean;
+}
+const { locale, title, description, path, noindex = false } = Astro.props;
+const absolute = (p: string) => new URL(p, Astro.site).href;
+const canonical = absolute(localizedPath(locale, path));
+---
+
+<!doctype html>
+<html lang={HTML_LANG[locale]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {LOCALES.map((l) => <link rel="alternate" hreflang={l} href={absolute(localizedPath(l, path))} />)}
+    <link rel="alternate" hreflang="x-default" href={absolute(path)} />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={absolute('/og-default.png')} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Sets the theme before first paint so there is no flash (W05). -->
+    <script is:inline>
+      try {
+        var t = localStorage.getItem('mm-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
+  </head>
+  <body class="flex min-h-dvh flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-20 focus:bg-bg focus:p-2"
+    >
+      Skip to content
+    </a>
+    <Header locale={locale} />
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+    <Footer locale={locale} />
+  </body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "name": "@1minitman/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "description": "Member app for iOS and Android: Expo, Expo Router, NativeWind. Talks to /v1.",
+  "scripts": {
+    "dev": "dotenv -e ../../.env.development -- expo start",
+    "ios": "dotenv -e ../../.env.development -- expo start --ios",
+    "android": "dotenv -e ../../.env.development -- expo start --android",
+    "typecheck": "tsc --noEmit",
+    "doctor": "expo-doctor",
+    "eas": "dotenv -e ../../.env.development -- eas"
+  },
+  "dependencies": {
+    "@1minitman/contracts": "workspace:*",
+    "@1minitman/entitlements": "workspace:*",
+    "@1minitman/i18n": "workspace:*",
+    "@1minitman/tokens": "workspace:*",
+    "@1minitman/ui-native": "workspace:*",
+    "@expo-google-fonts/manrope": "^0.4.3",
+    "@expo/vector-icons": "^15.1.1",
+    "@tanstack/react-query": "catalog:",
+    "expo": "~58.0.26",
+    "expo-constants": "~58.0.16",
+    "expo-font": "~58.0.12",
+    "expo-haptics": "~58.0.8",
+    "expo-linking": "~58.0.17",
+    "expo-router": "~58.0.32",
+    "expo-splash-screen": "~58.0.14",
+    "expo-status-bar": "~58.0.5",
+    "expo-system-ui": "~58.0.7",
+    "nativewind": "^4.2.7",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-native": "0.88.1",
+    "react-native-gesture-handler": "~3.3.0",
+    "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1",
+    "react-native-worklets": "0.13.0"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "dotenv-cli": "^11.1.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "catalog:"
+  }
+}

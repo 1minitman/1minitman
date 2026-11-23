@@ -1,0 +1,61 @@
+/*
+ * One stylesheet for every React web app (admin console, billing web app):
+ *   @import '@1minitman/ui-web/styles.css';
+ * Order matters: Tailwind, then the brand tokens (which replace Tailwind's default palette),
+ * then the shadcn/ui variable names mapped onto the tokens.
+ */
+@import 'tailwindcss';
+@import '@1minitman/tokens/tokens.css';
+@import '@fontsource-variable/manrope';
+
+/* Tailwind must also scan this package for class names. */
+@source '.';
+
+/* shadcn/ui names -> brand tokens, so `shadcn add <component>` output works unchanged. */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--raised);
+  --color-card-foreground: var(--fg);
+  --color-popover: var(--raised);
+  --color-popover-foreground: var(--fg);
+  --color-primary: var(--inverse-bg);
+  --color-primary-foreground: var(--inverse-fg);
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--fg);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--fg-2);
+  --color-accent: var(--sunken);
+  --color-accent-foreground: var(--fg);
+  --color-destructive: var(--error);
+  --color-input: var(--border-strong);
+  --color-ring: var(--fg);
+  --font-sans: 'Manrope Variable', var(--font-sans-stack);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+  }
+  :focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 150ms !important;
+    }
+  }
+}

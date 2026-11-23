@@ -1,0 +1,45 @@
+---
+import { translate, type Locale } from '@1minitman/i18n';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// The shell of the home page. The real blocks (W08–W18) arrive in website milestone M3
+// and render from CMS content; nothing here invents copy beyond the brand promise.
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+---
+
+<BaseLayout
+  locale={locale}
+  path="/"
+  title="1minitman · Meet real people who won't waste your time"
+  description="1minitman is a dating app for people who are serious: verified members, matched on intentions, and a 1-Minute Intro that respects your time."
+>
+  <section class="mx-auto grid max-w-(--container-page) items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
+    <div>
+      <p class="text-[12px] font-extrabold tracking-[0.12em] text-fg-2 uppercase">
+        {translate(locale, 'brand.slogan')}
+      </p>
+      <h1 class="mt-4 text-[40px] leading-[44px] font-extrabold tracking-[-0.04em] md:text-[64px] md:leading-[68px]">
+        Meet real people who won't waste your time.
+      </h1>
+    </div>
+    <div>
+      <img
+        class="art-light h-auto w-full"
+        src="/art/hero-couple-light.svg"
+        width="1020"
+        height="640"
+        alt="Two people meeting, drawn in a single ink line"
+      />
+      <img
+        class="art-dark h-auto w-full"
+        src="/art/hero-couple-dark.svg"
+        width="1020"
+        height="640"
+        alt="Two people meeting, drawn in a single ink line"
+      />
+    </div>
+  </section>
+</BaseLayout>

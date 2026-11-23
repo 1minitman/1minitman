@@ -1,0 +1,19 @@
+{
+  "name": "@1minitman/entitlements",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Member roles, plans and entitlement keys. The values live in the database (role_entitlements); this package holds the vocabulary and pure rules.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "bun": "catalog:",
+    "@types/bun": "catalog:"
+  }
+}

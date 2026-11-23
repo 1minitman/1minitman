@@ -1,0 +1,102 @@
+PROMPT FOR THE REPLACING AGENT
+==============================
+Canvas: "1minitman Logo" -> page "1minit-mobile-ui" (page id: mobile-ui)
+Attached: the illustration files in this media/ folder. Each comes as .svg (preferred: crisp at any size)
+and .webp (lossless raster fallback at the stated pixel size). Use the SVG unless an SVG upload is refused.
+
+TASK
+Replace the current illustrations on the 1minit-mobile-ui screens with the attached set:
+- the cartoon "Open Peeps" avatars (heavy strokes, brown fills, goofy faces), and
+- the unDraw scene illustrations on A2 and A4.
+The new set is one consistent cast drawn in a fine single-weight line, Ink #0A0A0A on Paper #FFFFFF.
+This follows the brand guide, section 09: "simple, single-weight line drawings in Ink on Paper ... one idea
+per screen". Upload each file, then swap each old image reference for the new one as mapped below.
+Change images only: do not change layout, sizes, copy, colours, links or any other artboard.
+
+RULES
+1. Keep every image frame exactly as it is (size, position, border-radius, circle masks, borders, badges).
+   Illustrations fill their frame with object-fit: cover.
+2. Do not recolour, tint or add effects. The art stays Ink on Paper in both themes.
+   Exception: A2 and A4 have separate "__dark__" files, made for dark theme; use them where the screen
+   already switches the illustration by theme.
+3. Frames under ~120px (avatars, chat rows, likes, group members, tiny 16-56px dots) use the 512x512 "avatar_" file.
+   Large or rectangular frames (profile cards, photo grids, the main photo, video tiles) use the 1080x1440 "profile_" file.
+4. Update the alt text where it described the old illustration (see A2, A4 and B4 below). Decorative avatars keep alt="".
+5. Leave screen A3 (One-Minute countdown ring) and the wordmark/logo images alone.
+6. Leave the "M-Image-Options" exploration board alone; it is not a product screen.
+7. Persona names that share an image today (e.g. Amaka/Efe/Kemi) keep sharing the same new image.
+
+MAPPING (old asset id on the canvas -> new file; use .svg, .webp as fallback)
+--------------------------------------------------------------------------
+People (same character everywhere they appear):
+
+/_blob/363cbac54bfa44466a502d1e868a5d66  (Amaka, 27, Lagos; also Efe, Kemi)
+   -> avatar_amaka__A1-center-H8-GC3-BL6__512x512
+      Screens: A1 (centre 152px circle), H8, GC3, BL6
+
+/_blob/8a74af9fa37f0539c7e8c147773cf6bc  ("You" / Ada: the signed-in member)
+   -> small circles:   avatar_you-ada__E4-D1-D14-B0-MF4-PM1__512x512
+      (E4 184px, D1 header 40px and 16px dot, D2, D3, D5, D14 header, D15, B0, B5, B9, B10, B11,
+       C8, AS5, AS6, AX2, AX5, BL1, BL6, GD6, MF1, MF6, OB4, P6, PM1 header)
+   -> large/rect frames: profile_you-ada-main__B4-B8-D14-PM1-PM2__1080x1440
+      (B4 main photo, B8 "Main photo", D14 "Photo 1, main", PM1/PM2 photo slots,
+       MF4 "Your camera" tile, AX3/GD4/P4 media clip thumbnails)
+
+/_blob/80b4f6889832e7b5aadac2d878148ddb  ON SCREEN D14 ONLY ("Photo 2"; currently wrongly shows the world-map art)
+   -> profile_you-ada-photo2__D14-B8__1080x1440   (Ada taking a selfie)
+      Also use it for B8 "Photo 2".
+
+/_blob/fcb2ffdc7f181b12bf8839d3d6fe25ee  (Zara: the featured spec; also Ife)
+   -> small circles:   avatar_zara__D1-D5-D6-MF1-MF2-MF3-MF5-P0-C8__512x512
+      (D5, D6, MF1, MF2, MF3, MF5, P0, C8, B0, B10, B11, D12, GC5, P6, A1 56px circle)
+   -> full-bleed cards: profile_zara-card__D1-D4-MF4__1080x1440
+      (D1 home spec card, D4 "Zara's photo 1 of 4", MF4 "Zara's video" full-screen tile)
+
+/_blob/a1a405bfe4f1e034e22d0544219945fa  (Tunde; also Bola, Gbenga, Seyi)
+   -> avatar_tunde__A1-D9-D10-D12-H3-H4-GC5__512x512
+      Screens: A1, D9, D10, D12, H3, H4, GC3, GC5, BL6
+
+/_blob/6ab8742873c3dbb1d59e9d1ad33a2d16  (Kofi, 36, London/Accra; also Chidi, Jide, Tobi)
+   -> avatar_kofi__A1-D11-GD0-GD6-GC3__512x512
+      Screens: A1, D11, GD0, GD6, GC3, BL6
+
+/_blob/77dc3401b9ac4f7eaa2289b7f3df38b1  (Aisha; also Funke, Lola)
+   -> avatar_aisha__A1-D12-GC3-GC5-BL6__512x512
+      Screens: A1, D12, GC3, GC5, BL6
+
+/_blob/d1a4e51a37029f049a67c12f4a12a912  (Awa; also Halima, Ngozi)
+   -> avatar_awa__A1-GC3-BL6__512x512
+      Screens: A1, GC3, BL6
+
+/_blob/fe61f815d556f25070efa2b60c150dd8  (Femi; also Dami, Musa)
+   -> avatar_femi__GC3-BL6__512x512
+      Screens: GC3, BL6
+
+Screens that build image paths in script from lists or ids (D7 Likes, D8 Chats, D13 Group Room,
+D16 Activity, GC3 Invite, BL6 Lapsed, H5, H7, P1, P2, GD2): update the ids/paths in those lists so every
+person resolves to their new file above.
+
+Scenes:
+
+A2 "Meet your specs"
+   light /_blob/7245704e7d5a2f13f6e3523cbc36f04c -> hero_A2-meet-your-specs_couple__1020x640
+   dark  /_blob/ef033bd07eadea6c0bd8a633be3c157e -> hero_A2-meet-your-specs_couple__dark__1020x640
+   Frame stays 340x213. New alt: "Two people who want the same things, smiling at each other"
+
+A4 "Verified. Real. Everywhere."
+   light /_blob/80b4f6889832e7b5aadac2d878148ddb -> hero_A4-verified-everywhere_video-call__1020x760
+   dark  /_blob/9c3308fdd65864bda6782fb6befe5088 -> hero_A4-verified-everywhere_video-call__dark__1020x760
+   Frame stays 340x253. New alt: "A verified member waving on a video call, connected to people far away"
+   Keep the "Amaka, 27 / Kofi, 36" verified cards and the "PHONE + FACE CHECKED" pill on top.
+
+B4 main photo, error variant "two" (more than one person in the photo): /_blob/7245704e7d5a2f13f6e3523cbc36f04c
+   -> example_B4-main-photo-two-people-rejected__1080x1440
+      New alt: "Two people in one photo". (The normal B4 variant uses profile_you-ada-main as above.)
+
+DONE WHEN
+- No /_blob/ id listed above remains on any 1minit-mobile-ui screen (wordmarks on A0/A1/OB1/NT3 were never in scope).
+- Every screen still renders at 390x844 with no layout shift, in both light and dark themes.
+
+LICENCE
+All art is remixed from "Notionists" by Zoish, CC0 1.0 (public domain); scene line work was added in-house.
+No attribution is required; details are in LICENCE_LOG.csv.

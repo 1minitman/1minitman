@@ -1,0 +1,62 @@
+---
+import type { Locale } from '@1minitman/i18n';
+import { localizedPath } from '../lib/i18n';
+import { FOOTER_LINKS } from '../lib/navigation';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const links = FOOTER_LINKS.filter((link) => link.ready);
+const year = new Date().getFullYear();
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:4000';
+---
+
+<footer class="border-t border-border bg-surface">
+  <div class="mx-auto max-w-(--container-page) px-4 py-10 text-[14px] text-fg-2">
+    {
+      links.length > 0 && (
+        <nav aria-label="Legal" class="mb-6 flex flex-wrap gap-6">
+          {links.map((link) => (
+            <a href={localizedPath(locale, link.path)}>{link.label}</a>
+          ))}
+        </nav>
+      )
+    }
+    <!-- Legal line: exact wording from the website spec (W02). The TIN is never shown. -->
+    <p>
+      © {year} 1MINITMAN DATING SERVICES · Business name no. 9997907 · Block 9 Flat G, FHS Zuba, Abuja,
+      FCT, Nigeria · by 1minit
+    </p>
+    {
+      import.meta.env.DEV && (
+        <p class="mt-4 font-mono text-[12px]" data-testid="footer.dev.apiStatus" data-api-url={apiUrl}>
+          dev · API: checking…
+        </p>
+      )
+    }
+  </div>
+</footer>
+
+{
+  import.meta.env.DEV && (
+    <script>
+      // Development only: shows that the website can reach the local API. Never built for production.
+      import { createPublicClient } from '@1minitman/contracts/client';
+      const el = document.querySelector<HTMLElement>('[data-testid="footer.dev.apiStatus"]');
+      if (el) {
+        const api = createPublicClient({ baseUrl: el.dataset.apiUrl! });
+        api
+          .GET('/health')
+          .then(({ data }) => {
+            el.textContent = data
+              ? `dev · API: connected (${data.environment}, v${data.version})`
+              : 'dev · API: not reachable';
+          })
+          .catch(() => {
+            el.textContent = 'dev · API: not reachable';
+          });
+      }
+    </script>
+  )
+}

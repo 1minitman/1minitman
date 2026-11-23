@@ -1,0 +1,54 @@
+{
+  "name": "1minitman",
+  "private": true,
+  "version": "0.1.0",
+  "description": "1minitman monorepo: API, worker, admin console, website, billing web app and member app.",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.23"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:core": "node scripts/dev.mjs --core",
+    "dev:api": "node scripts/dev.mjs --only api,worker",
+    "services:up": "docker compose up -d --wait",
+    "services:down": "docker compose down",
+    "services:reset": "docker compose down -v && docker compose up -d --wait",
+    "db:migrate": "pnpm --filter @1minitman/db migrate",
+    "db:status": "pnpm --filter @1minitman/db status",
+    "db:pull": "pnpm --filter @1minitman/db pull",
+    "contracts:generate": "turbo run openapi:emit --filter @1minitman/api && pnpm --filter @1minitman/contracts generate",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "turbo run test",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "check:banned-terms": "node scripts/check-banned-terms.mjs",
+    "preflight": "node scripts/preflight.mjs",
+    "prepare": "husky || true"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "dotenv": "^17.2.3",
+    "eslint": "^10.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.2",
+    "prettier": "^3.10.1",
+    "turbo": "^2.11.13",
+    "typescript": "catalog:",
+    "typescript-eslint": "^8.74.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs,astro}": [
+      "eslint --fix --no-warn-ignored"
+    ],
+    "*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
+  }
+}

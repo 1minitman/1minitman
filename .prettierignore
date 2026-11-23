@@ -1,0 +1,14 @@
+node_modules
+dist
+.turbo
+.astro
+.expo
+pnpm-lock.yaml
+packages/db/migrations
+packages/db/src/schema
+packages/contracts/openapi
+packages/contracts/src/generated
+packages/tokens/dist
+packages/tokens/tokens.json
+apps/admin/src/routeTree.gen.ts
+**/*.svg

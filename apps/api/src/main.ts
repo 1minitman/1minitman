@@ -1,0 +1,35 @@
+import { createDatabase } from '@1minitman/db';
+import { RedisClient } from 'bun';
+import { createApp } from './app';
+import { loadEnv } from './config/env';
+import { createCheckReadiness, postgresProbe, redisProbe } from './modules/system';
+import { createLogger } from './platform/logger';
+
+// Composition root: the only place that knows concrete infrastructure.
+const env = loadEnv();
+const logger = createLogger(env.LOG_LEVEL, { service: 'api', env: env.APP_ENV });
+
+const database = createDatabase({ url: env.DATABASE_URL, applicationName: 'api' });
+const redis = new RedisClient(env.REDIS_URL);
+
+const app = createApp({
+  env,
+  logger,
+  checkReadiness: createCheckReadiness({
+    database: postgresProbe(database),
+    redis: redisProbe(redis),
+  }),
+});
+
+const server = Bun.serve({ port: env.API_PORT, fetch: app.fetch });
+logger.info('api listening', { url: `http://localhost:${server.port}`, docs: '/docs' });
+
+const shutdown = async (signal: string) => {
+  logger.info('shutting down', { signal });
+  await server.stop();
+  redis.close();
+  await database.close();
+  process.exit(0);
+};
+process.on('SIGINT', () => void shutdown('SIGINT'));
+process.on('SIGTERM', () => void shutdown('SIGTERM'));

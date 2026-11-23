@@ -1,0 +1,16 @@
+{
+  "name": "@1minitman/i18n",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Locales (en, pcm, fr) and message catalogues shared by the app, website and API.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

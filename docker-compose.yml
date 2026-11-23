@@ -1,0 +1,28 @@
+# Local services only (Technical Reference 4.4: "local" environment).
+# Production uses Neon (PostgreSQL) and Upstash (Redis); see docs/USAGE.md.
+name: 1minitman
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    platform: linux/amd64
+    environment:
+      POSTGRES_USER: minitman
+      POSTGRES_PASSWORD: minitman
+      POSTGRES_DB: minitman
+    ports: ['${POSTGRES_PORT:-5432}:5432']
+    volumes: ['pgdata:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U minitman -d minitman']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    ports: ['${REDIS_PORT:-6379}:6379']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+volumes:
+  pgdata:

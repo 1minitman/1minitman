@@ -1,0 +1,33 @@
+{
+  "name": "@1minitman/admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Admin console (staff only): Vite + React + TanStack Router / Query + shadcn/ui. Talks to /admin/v1.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsr generate && tsc --noEmit"
+  },
+  "dependencies": {
+    "@1minitman/contracts": "workspace:*",
+    "@1minitman/ui-web": "workspace:*",
+    "@tanstack/react-query": "catalog:",
+    "@tanstack/react-router": "^1.170.46",
+    "lucide-react": "^1.78.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/router-cli": "^1.168.0",
+    "@tanstack/router-plugin": "^1.169.0",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "^6.3.0",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

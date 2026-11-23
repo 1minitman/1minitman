@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+@import '@1minitman/tokens/tokens.css';
+/* Manrope is self-hosted (no Google Fonts at runtime). */
+@import '@fontsource-variable/manrope';
+
+@theme inline {
+  --font-sans: 'Manrope Variable', var(--font-sans-stack);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+  }
+  :focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+  /* Illustrations: one file per theme, swapped without JavaScript. */
+  .art-dark {
+    display: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .art-light {
+      display: none;
+    }
+    :root:not([data-theme='light']) .art-dark {
+      display: block;
+    }
+  }
+  :root[data-theme='dark'] .art-light {
+    display: none;
+  }
+  :root[data-theme='dark'] .art-dark {
+    display: block;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 150ms !important;
+    }
+  }
+}

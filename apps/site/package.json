@@ -1,0 +1,27 @@
+{
+  "name": "@1minitman/site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Public website (information only): Astro static output, Tailwind v4, brand tokens. Reads published content from /public/v1.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@1minitman/contracts": "workspace:*",
+    "@1minitman/i18n": "workspace:*",
+    "@1minitman/tokens": "workspace:*",
+    "@fontsource-variable/manrope": "^5.3.0",
+    "astro": "^7.4.13"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@tailwindcss/vite": "catalog:",
+    "@tybys/wasm-util": "^0.10.5",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:"
+  }
+}

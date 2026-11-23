@@ -1,0 +1,24 @@
+{
+  "name": "@1minitman/tokens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Brand design tokens (source: tokens.json v3.0.0) built to CSS, TypeScript and a NativeWind preset.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./tailwind-preset": "./dist/tailwind-preset.cjs",
+    "./tokens.json": "./tokens.json"
+  },
+  "files": [
+    "dist",
+    "tokens.json"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "node build.mjs --check"
+  }
+}

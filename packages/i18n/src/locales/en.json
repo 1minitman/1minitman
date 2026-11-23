@@ -1,0 +1,14 @@
+{
+  "brand.name": "1minitman",
+  "brand.slogan": "Don't waste my time.",
+  "common.getTheApp": "Get the app",
+  "common.retry": "Try again",
+  "common.skipToContent": "Skip to content",
+  "tabs.specs": "My Specs",
+  "tabs.likes": "Likes",
+  "tabs.chats": "Chats",
+  "tabs.groups": "Groups",
+  "tabs.profile": "Profile",
+  "status.apiOnline": "Connected",
+  "status.apiOffline": "You're offline"
+}

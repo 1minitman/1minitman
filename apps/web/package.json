@@ -1,0 +1,29 @@
+{
+  "name": "@1minitman/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Billing-only web app (OD-15): Flutterwave checkout and plan management for web-billed members. Talks to /v1.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@1minitman/contracts": "workspace:*",
+    "@1minitman/ui-web": "workspace:*",
+    "@tanstack/react-query": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "^6.3.0",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

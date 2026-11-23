@@ -1,0 +1,86 @@
+---
+import { createTranslator, type Locale } from '@1minitman/i18n';
+import { localizedPath } from '../lib/i18n';
+import { DOWNLOAD_LINK, HEADER_LINKS } from '../lib/navigation';
+import BrandMark from './BrandMark.astro';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = createTranslator(locale);
+const links = HEADER_LINKS.filter((link) => link.ready);
+---
+
+<header class="sticky top-0 z-10 border-b border-border bg-bg">
+  <div class="mx-auto flex h-16 max-w-(--container-page) items-center gap-6 px-4 md:h-[72px]">
+    <a
+      href={localizedPath(locale, '/')}
+      aria-label="1minitman home"
+      class="flex items-center gap-2 text-[20px] font-extrabold tracking-[-0.04em]"
+      data-testid="header.brand.home"
+    >
+      <BrandMark class="h-7 w-auto" />
+      <span>1minitman</span>
+    </a>
+    {
+      links.length > 0 && (
+        <nav aria-label="Main" class="hidden gap-6 md:flex">
+          {links.map((link) => (
+            <a href={localizedPath(locale, link.path)} class="text-[16px] text-fg-2 hover:text-fg">
+              {link.label}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+    <div class="ml-auto flex items-center gap-3">
+      <label class="sr-only" for="theme">Theme</label>
+      <select
+        id="theme"
+        data-testid="header.theme.select"
+        class="h-11 rounded-sm border border-border-strong bg-bg px-2 text-[14px]"
+      >
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      {
+        DOWNLOAD_LINK.ready && (
+          <a
+            href={localizedPath(locale, DOWNLOAD_LINK.path)}
+            class="inline-flex h-12 items-center rounded-sm bg-inverse-bg px-5 font-bold text-inverse-fg"
+            data-testid="header.cta.getApp"
+          >
+            {t('common.getTheApp')}
+          </a>
+        )
+      }
+    </div>
+  </div>
+</header>
+
+<script>
+  // Theme toggle (W05). The no-flash part runs inline in <head>; this only handles changes.
+  const select = document.querySelector<HTMLSelectElement>('#theme');
+  if (select) {
+    let saved = 'system';
+    try {
+      saved = localStorage.getItem('mm-theme') ?? 'system';
+    } catch {
+      // Storage blocked: stay on System.
+    }
+    select.value = saved;
+    select.addEventListener('change', () => {
+      const value = select.value;
+      if (value === 'system') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', value);
+      try {
+        if (value === 'system') localStorage.removeItem('mm-theme');
+        else localStorage.setItem('mm-theme', value);
+      } catch {
+        // Applied for this visit only.
+      }
+    });
+  }
+</script>
