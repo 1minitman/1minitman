@@ -48,7 +48,7 @@ jobs:
       # CI uses the same file layout as a laptop: the example values are the local defaults.
       - run: cp .env.example .env.development
       - name: Secret scan
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm format:check
