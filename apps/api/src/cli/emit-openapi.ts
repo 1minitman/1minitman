@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildOpenApiDocument, type AppDeps } from '../app';
 import { createLogger } from '../platform/logger';
+import { createMemoryRateLimiter } from '../platform/rate-limit';
 
 // Writes one OpenAPI document per surface into packages/contracts/openapi/.
 // Needs no database or Redis: documents are built from route definitions alone.
@@ -13,6 +14,7 @@ const deps: AppDeps = {
     CORS_ALLOWED_ORIGINS: [],
   },
   logger: createLogger('error'),
+  surfaces: { rateLimiter: createMemoryRateLimiter() },
   checkReadiness: () => {
     throw new Error('not available while emitting documents');
   },

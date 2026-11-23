@@ -3,9 +3,10 @@ import { z } from 'zod';
 
 const EnvSchema = z.object({
   APP_ENV: EnvironmentSchema.default('local'),
-  /** pg-boss holds LISTEN connections and locks: use the direct URL, not a pooler. */
-  DATABASE_MIGRATION_URL: z.url().optional(),
-  DATABASE_URL: z.url(),
+  /** Business data, as the app_worker role (no schema changes). */
+  WORKER_DATABASE_URL: z.url(),
+  /** pg-boss queue, as the app_queue role: owns the pgboss schema and nothing else. Direct connection. */
+  QUEUE_DATABASE_URL: z.url(),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 });
 
@@ -17,8 +18,5 @@ export const loadEnv = (source: Record<string, string | undefined> = process.env
       `Invalid environment. Check .env.development against .env.example:\n${lines.join('\n')}`,
     );
   }
-  return {
-    ...parsed.data,
-    queueUrl: parsed.data.DATABASE_MIGRATION_URL ?? parsed.data.DATABASE_URL,
-  };
+  return parsed.data;
 };

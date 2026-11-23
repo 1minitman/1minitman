@@ -1,2 +1,18 @@
-# Reviews are required from a code owner on protected branches.
-* @proffnick
+# Every change needs an approving review from a code owner who is not the author.
+# A code owner must have write access to the repository for the rule to count.
+* @proffnick Ikapeisaac3@gmail.com
+
+# Sensitive areas, listed so they stay owned even if the default line changes.
+/.github/           @proffnick Ikapeisaac3@gmail.com
+/infra/             @proffnick Ikapeisaac3@gmail.com
+/packages/db/       @proffnick Ikapeisaac3@gmail.com
+/apps/api/          @proffnick Ikapeisaac3@gmail.com
+/.env.example       @proffnick Ikapeisaac3@gmail.com
+
+# Dependencies and build configuration: a changed lockfile or install setting is a supply-chain change.
+/package.json        @proffnick Ikapeisaac3@gmail.com
+/pnpm-lock.yaml      @proffnick Ikapeisaac3@gmail.com
+/pnpm-workspace.yaml @proffnick Ikapeisaac3@gmail.com
+/turbo.json          @proffnick Ikapeisaac3@gmail.com
+/scripts/            @proffnick Ikapeisaac3@gmail.com
+/packages/contracts/ @proffnick Ikapeisaac3@gmail.com

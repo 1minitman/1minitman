@@ -1,5 +1,6 @@
 import { SURFACES, WEBHOOKS_BASE_PATH, type SurfaceName } from '@1minitman/contracts';
 import { createRouter, type Router } from '../platform/http/router';
+import type { RateLimiter } from '../platform/rate-limit';
 
 /**
  * One router per API surface. A feature module adds its routes to the surface it serves:
@@ -11,9 +12,11 @@ import { createRouter, type Router } from '../platform/http/router';
  * Build order for every feature: API route here -> admin console -> website -> app.
  * Register module routers inside the matching function below.
  */
-// The dependency bag (database, redis, use cases) grows as modules are added.
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface SurfaceDeps {}
+/** What modules receive. It grows as modules are added (database, use cases, ...). */
+export interface SurfaceDeps {
+  /** Redis-backed limiter. Use it with rateLimit() on auth, billing and form routes. */
+  rateLimiter: RateLimiter;
+}
 
 const builders: Record<SurfaceName, (router: Router, deps: SurfaceDeps) => Router> = {
   member: (router) => router,

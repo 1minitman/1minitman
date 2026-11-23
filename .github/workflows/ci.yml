@@ -44,7 +44,11 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      # Frozen lockfile: CI installs exactly what was reviewed. Build scripts run only for the
+      # packages allow-listed in pnpm-workspace.yaml (strictDepBuilds fails on any other).
       - run: pnpm install --frozen-lockfile
+      - name: Dependency audit (high and critical)
+        run: pnpm audit:deps
       # CI uses the same file layout as a laptop: the example values are the local defaults.
       - run: cp .env.example .env.development
       # The gitleaks binary is free; the marketplace action needs a paid licence for organisations.
@@ -59,8 +63,12 @@ jobs:
       - run: pnpm check:banned-terms
       - name: Apply schema to PostgreSQL 16 + PostGIS
         run: pnpm db:migrate
+      - name: Apply database roles (least privilege)
+        run: pnpm db:roles
       - name: Generated API client is up to date
         run: pnpm contracts:generate && git diff --exit-code packages/contracts
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - name: No server-only settings in client bundles
+        run: pnpm check:client-bundles

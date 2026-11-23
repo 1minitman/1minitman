@@ -1,6 +1,6 @@
 // @ts-check
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import { loadEnv } from 'vite';
 
 // One env file for the whole repo: <root>/.env.development (see .env.example).
@@ -20,6 +20,14 @@ export default defineConfig({
     defaultLocale: 'en',
     locales: ['en', 'pcm', 'fr'],
     routing: { prefixDefaultLocale: false, redirectToDefaultLocale: false },
+  },
+  // Validated at build time. Only variables declared here exist in pages, and only the
+  // `client` + `public` ones may reach the browser. Nothing secret belongs in a static site.
+  env: {
+    schema: {
+      PUBLIC_API_URL: envField.string({ context: 'client', access: 'public', url: true }),
+    },
+    validateSecrets: true,
   },
   vite: { envDir, plugins: [tailwindcss()] },
 });

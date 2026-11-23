@@ -14,7 +14,7 @@ export interface AppDeps {
   env: Pick<Env, 'APP_ENV' | 'APP_VERSION' | 'CORS_ALLOWED_ORIGINS'>;
   logger: Logger;
   checkReadiness: CheckReadiness;
-  surfaces?: SurfaceDeps;
+  surfaces: SurfaceDeps;
 }
 
 const SERVICE = '1minitman-api';
@@ -23,7 +23,7 @@ const SERVICE = '1minitman-api';
 export const buildOpenApiDocument = (deps: AppDeps, surface: SurfaceName) =>
   createRouter()
     .route('/', systemRouter(deps))
-    .route('/', createSurfaceRouter(surface, deps.surfaces ?? {}))
+    .route('/', createSurfaceRouter(surface, deps.surfaces))
     .getOpenAPI31Document({
       openapi: '3.1.0',
       info: { title: SURFACES[surface].title, version: deps.env.APP_VERSION },
@@ -40,7 +40,7 @@ const systemRouter = (deps: AppDeps) =>
 /** Composition root for HTTP: pure function of its dependencies, so tests can build an app in memory. */
 export const createApp = (deps: AppDeps) => {
   const app = createRouter();
-  const surfaceDeps = deps.surfaces ?? {};
+  const surfaceDeps = deps.surfaces;
 
   app.use('*', requestContext(deps.logger));
   app.use('*', secureHeaders());

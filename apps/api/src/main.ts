@@ -4,6 +4,7 @@ import { createApp } from './app';
 import { loadEnv } from './config/env';
 import { createCheckReadiness, postgresProbe, redisProbe } from './modules/system';
 import { createLogger } from './platform/logger';
+import { createRedisRateLimiter } from './platform/rate-limit';
 
 // Composition root: the only place that knows concrete infrastructure.
 const env = loadEnv();
@@ -19,6 +20,7 @@ const app = createApp({
     database: postgresProbe(database),
     redis: redisProbe(redis),
   }),
+  surfaces: { rateLimiter: createRedisRateLimiter(redis) },
 });
 
 const server = Bun.serve({ port: env.API_PORT, fetch: app.fetch });
