@@ -38,7 +38,7 @@ A client can never get ahead of the API, because clients only call what the gene
 
 ## 2. First run
 
-You need: **Node 22.23+**, **pnpm 10**, **Docker Desktop** (running). For the phone app: Xcode
+You need: **Node 24** (run `nvm install` in the repo; it reads `.nvmrc`), **pnpm 10**, **Docker Desktop** (running). For the phone app: Xcode
 (iOS simulator) or Android Studio, or the Expo Go app on a real phone.
 
 ```bash
@@ -263,16 +263,17 @@ Staging and production never share a database, Redis, bucket or key.
 
 ## 10. When something goes wrong
 
-| Symptom                            | Fix                                                                             |
-| ---------------------------------- | ------------------------------------------------------------------------------- |
-| "Docker is not running"            | Start Docker Desktop, then `pnpm dev` again.                                    |
-| A port is already in use           | A previous `pnpm dev` is still running. `pnpm preflight` names the port.        |
-| API says "Invalid environment"     | Compare `.env.development` with `.env.example`; the message names the variable. |
-| `/ready` says the database is down | `pnpm services:up`, then `pnpm db:migrate`.                                     |
-| Database in a strange state        | `pnpm services:reset` then `pnpm db:migrate` (local data is disposable).        |
-| App on a phone can't reach the API | Use your computer's Wi-Fi address in `EXPO_PUBLIC_API_URL`, same Wi-Fi network. |
-| App shows old code                 | In the mobile task press `r`; if still stale, restart with `expo start -c`.     |
-| Types wrong after changing a route | `pnpm contracts:generate`.                                                      |
+| Symptom                                        | Fix                                                                             |
+| ---------------------------------------------- | ------------------------------------------------------------------------------- |
+| "Node … is too old" / "not supported by Astro" | `nvm install && nvm use` in the repo folder, then `pnpm dev`.                   |
+| "Docker is not running"                        | Start Docker Desktop, then `pnpm dev` again.                                    |
+| A port is already in use                       | A previous `pnpm dev` is still running. `pnpm preflight` names the port.        |
+| API says "Invalid environment"                 | Compare `.env.development` with `.env.example`; the message names the variable. |
+| `/ready` says the database is down             | `pnpm services:up`, then `pnpm db:migrate`.                                     |
+| Database in a strange state                    | `pnpm services:reset` then `pnpm db:migrate` (local data is disposable).        |
+| App on a phone can't reach the API             | Use your computer's Wi-Fi address in `EXPO_PUBLIC_API_URL`, same Wi-Fi network. |
+| App shows old code                             | In the mobile task press `r`; if still stale, restart with `expo start -c`.     |
+| Types wrong after changing a route             | `pnpm contracts:generate`.                                                      |
 
 ## 11. Where the product decisions live
 

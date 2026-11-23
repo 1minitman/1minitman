@@ -42,6 +42,15 @@ const fail = (message) => {
   process.exit(1);
 };
 
+// 0. Node version: Astro, Vite and Expo all refuse older runtimes, each with its own cryptic error.
+const [major, minor, patch] = process.versions.node.split('.').map(Number);
+if (major < 22 || (major === 22 && (minor < 23 || (minor === 23 && patch < 4)))) {
+  fail(
+    `Node ${process.versions.node} is too old; this project needs Node 24 (22.23.4 at the least).\n` +
+      '      Run `nvm install && nvm use` in this folder (it reads .nvmrc), then `pnpm dev` again.',
+  );
+}
+
 // 1. Environment file
 if (!existsSync(`${root}/.env.development`)) {
   copyFileSync(`${root}/.env.example`, `${root}/.env.development`);

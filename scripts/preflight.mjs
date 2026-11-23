@@ -13,8 +13,8 @@ const check = (name, ok, hint) => results.push({ name, ok, hint });
 const [major, minor] = process.versions.node.split('.').map(Number);
 check(
   `Node ${process.versions.node}`,
-  major > 22 || (major === 22 && minor >= 23),
-  'Install Node 22.23 or newer (nvm install 22).',
+  major > 22 || (major === 22 && minor >= 24),
+  'Run `nvm install` in the repo (uses .nvmrc), or install Node 24.',
 );
 
 const pnpm = out('pnpm', ['--version']);

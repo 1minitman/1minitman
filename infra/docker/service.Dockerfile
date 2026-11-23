@@ -3,7 +3,7 @@
 #   docker build -f infra/docker/service.Dockerfile --build-arg SERVICE=worker -t 1minitman-worker .
 ARG BUN_VERSION=1.4.5
 
-FROM node:22-slim AS build
+FROM node:24-slim AS build
 ARG SERVICE
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH CI=1 HUSKY=0
 RUN corepack enable
