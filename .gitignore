@@ -33,3 +33,6 @@ infra/**/*.tfstate*
 
 # Reference output of `pnpm db:pull`
 packages/db/.introspected/
+
+# Written by the CI secret scan
+results.sarif

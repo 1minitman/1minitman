@@ -12,3 +12,4 @@ packages/tokens/dist
 packages/tokens/tokens.json
 apps/admin/src/routeTree.gen.ts
 **/*.svg
+results.sarif

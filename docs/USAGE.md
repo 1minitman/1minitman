@@ -221,6 +221,32 @@ The exact screen to click through for each key is written next to its variable i
 Flow: branch from `develop` → pull request → CI green + review → merge. To release: pull request
 from `develop` into `production` → approval → merge commit.
 
+### Turning the protection on (repository owner, once)
+
+Branch rules can only be set by an account with **admin** rights on the repository. They are written
+down in `.github/rulesets/` so nothing has to be typed by hand:
+
+1. GitHub → the repository → **Settings → Rules → Rulesets → New ruleset → Import a ruleset**.
+2. Import `.github/rulesets/develop.json`, then `.github/rulesets/production.json`.
+
+Or from a terminal signed in as the owner:
+
+```bash
+gh api -X POST repos/1minitnetwork-png/1minitman/rulesets --input .github/rulesets/develop.json
+gh api -X POST repos/1minitnetwork-png/1minitman/rulesets --input .github/rulesets/production.json
+```
+
+What they enforce: no direct pushes, no force pushes, no deleting the branch, a pull request with one
+approving code-owner review, resolved conversations, and a green `verify` check. `develop` takes
+squash merges only; `production` takes merge commits only.
+
+Also switch on, under **Settings → Code security**: secret scanning, push protection, Dependabot
+alerts and private vulnerability reporting (all free on a public repository).
+
+The repository is **public**: anyone can read both branches. Rules control who can change them, not
+who can see them. If `production` must not be readable, make the repository private (branch rules
+on a private repository need a paid GitHub plan).
+
 CI (`.github/workflows/ci.yml`) runs on every pull request: secret scan, format, lint, banned
 terms, the full schema on PostgreSQL 16 + PostGIS, generated-client check, type-check, tests, builds.
 
