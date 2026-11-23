@@ -23,7 +23,7 @@
     "@types/react": "catalog:",
     "nativewind": "^4.2.7",
     "react": "catalog:",
-    "react-native": "0.88.1",
+    "react-native": "catalog:",
     "typescript": "catalog:"
   }
 }
