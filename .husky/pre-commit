@@ -1,2 +1,4 @@
 pnpm exec lint-staged
 node scripts/check-secrets.mjs --staged
+# Deeper scan when gitleaks is installed (brew install gitleaks). CI always runs it.
+if command -v gitleaks >/dev/null 2>&1; then gitleaks git --staged --redact --no-banner; fi

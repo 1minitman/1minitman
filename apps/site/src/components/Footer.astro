@@ -1,5 +1,6 @@
 ---
 import type { Locale } from '@1minitman/i18n';
+import { PUBLIC_API_URL } from 'astro:env/client';
 import { localizedPath } from '../lib/i18n';
 import { FOOTER_LINKS } from '../lib/navigation';
 
@@ -9,7 +10,6 @@ interface Props {
 const { locale } = Astro.props;
 const links = FOOTER_LINKS.filter((link) => link.ready);
 const year = new Date().getFullYear();
-const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:4000';
 ---
 
 <footer class="border-t border-border bg-surface">
@@ -30,7 +30,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:4000';
     </p>
     {
       import.meta.env.DEV && (
-        <p class="mt-4 font-mono text-[12px]" data-testid="footer.dev.apiStatus" data-api-url={apiUrl}>
+        <p class="mt-4 font-mono text-[12px]" data-testid="footer.dev.apiStatus" data-api-url={PUBLIC_API_URL}>
           dev · API: checking…
         </p>
       )

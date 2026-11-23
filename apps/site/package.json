@@ -6,7 +6,7 @@
   "description": "Public website (information only): Astro static output, Tailwind v4, brand tokens. Reads published content from /public/v1.",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "dotenv -e ../../.env.development -- astro build",
     "preview": "astro preview",
     "typecheck": "astro check"
   },
@@ -21,6 +21,7 @@
     "@astrojs/check": "^0.9.12",
     "@tailwindcss/vite": "catalog:",
     "@tybys/wasm-util": "^0.10.5",
+    "dotenv-cli": "^11.1.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }

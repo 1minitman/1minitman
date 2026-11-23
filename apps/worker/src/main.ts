@@ -11,9 +11,19 @@ const log: JobContext['log'] = (message, fields) =>
     JSON.stringify({ time: new Date().toISOString(), service: 'worker', message, ...fields }),
   );
 
-const database = createDatabase({ url: env.DATABASE_URL, max: 4, applicationName: 'worker' });
-// pg-boss keeps its tables in its own `pgboss` schema and creates them on first start.
-const boss = new PgBoss({ connectionString: env.queueUrl, application_name: 'worker-queue' });
+const database = createDatabase({
+  url: env.WORKER_DATABASE_URL,
+  max: 4,
+  applicationName: 'worker',
+});
+// pg-boss keeps its tables in its own `pgboss` schema, on its own connection and database role.
+// Job payloads are stored there in plain text: pass ids, never secrets or personal data.
+// The schema itself is created by `pnpm db:roles`; the queue role may not create schemas.
+const boss = new PgBoss({
+  connectionString: env.QUEUE_DATABASE_URL,
+  application_name: 'worker-queue',
+  createSchema: false,
+});
 boss.on('error', (error) => log('queue error', { error: error.message }));
 
 await boss.start();

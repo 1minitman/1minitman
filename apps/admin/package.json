@@ -6,7 +6,7 @@
   "description": "Admin console (staff only): Vite + React + TanStack Router / Query + shadcn/ui. Talks to /admin/v1.",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "dotenv -e ../../.env.development -- vite build",
     "preview": "vite preview",
     "typecheck": "tsr generate && tsc --noEmit"
   },
@@ -17,7 +17,8 @@
     "@tanstack/react-router": "^1.170.46",
     "lucide-react": "^1.78.0",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/vite": "catalog:",
@@ -26,6 +27,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.3.0",
+    "dotenv-cli": "^11.1.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"

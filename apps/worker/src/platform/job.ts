@@ -8,6 +8,8 @@ export interface JobContext {
 
 /**
  * A background job. Names come from the job catalogue in the Technical Reference (section 11).
+ * Payloads are stored in the queue tables for retries and audit: carry ids only, never secrets,
+ * tokens, codes or personal data. The handler loads what it needs by id.
  * `cron` jobs are scheduled by the worker itself (UTC); the others run when the API enqueues them.
  */
 export interface JobDefinition<Payload extends object = object> {

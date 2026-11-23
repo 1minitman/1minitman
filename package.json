@@ -16,6 +16,7 @@
     "services:reset": "docker compose down -v && docker compose up -d --wait",
     "db:migrate": "pnpm --filter @1minitman/db migrate",
     "db:status": "pnpm --filter @1minitman/db status",
+    "db:roles": "pnpm --filter @1minitman/db roles",
     "db:pull": "pnpm --filter @1minitman/db pull",
     "contracts:generate": "turbo run openapi:emit --filter @1minitman/api && pnpm --filter @1minitman/contracts generate",
     "build": "turbo run build",
@@ -26,6 +27,8 @@
     "test": "turbo run test",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "check:banned-terms": "node scripts/check-banned-terms.mjs",
+    "check:client-bundles": "node scripts/check-client-bundles.mjs",
+    "audit:deps": "pnpm audit --audit-level=high",
     "preflight": "node scripts/preflight.mjs",
     "prepare": "husky || true"
   },

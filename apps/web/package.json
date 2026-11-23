@@ -6,7 +6,7 @@
   "description": "Billing-only web app (OD-15): Flutterwave checkout and plan management for web-billed members. Talks to /v1.",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "dotenv -e ../../.env.development -- vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
@@ -15,13 +15,15 @@
     "@1minitman/ui-web": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/vite": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.3.0",
+    "dotenv-cli": "^11.1.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"

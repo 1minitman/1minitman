@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { createApp, type AppDeps } from './app';
 import { createCheckReadiness } from './modules/system';
 import { createLogger } from './platform/logger';
+import { createMemoryRateLimiter } from './platform/rate-limit';
 
 const probe = (name: 'database' | 'redis', ok: boolean) => ({
   name,
@@ -16,6 +17,7 @@ const build = (databaseUp = true) =>
       database: probe('database', databaseUp),
       redis: probe('redis', true),
     }),
+    surfaces: { rateLimiter: createMemoryRateLimiter() },
   } satisfies AppDeps);
 
 describe('system routes', () => {
