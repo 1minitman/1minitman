@@ -2,7 +2,7 @@
 // `pnpm dev`: one command for local development.
 //   1. makes sure .env.development exists
 //   2. starts PostgreSQL + Redis (docker compose) and waits until they are healthy
-//   3. applies pending database migrations
+//   3. applies pending database migrations, then the database roles and local login users
 //   4. starts every app side by side in Turborepo's terminal UI:
 //      API, worker, admin console, billing web app, website and Metro (member app)
 //
@@ -70,6 +70,11 @@ if (needsServices && !flag('--skip-services')) {
   say('Applying database migrations…');
   if (run('pnpm', ['--silent', 'db:migrate']).status !== 0)
     fail('Migrations failed. See the error above.');
+  // Grants follow the schema (a migration can revoke EXECUTE from PUBLIC), and on a new or reset
+  // database this step creates the local login users the API and the worker connect as.
+  say('Applying database roles…');
+  if (run('pnpm', ['--silent', 'db:roles']).status !== 0)
+    fail('Database roles failed. See the error above.');
 }
 
 // 4. Apps

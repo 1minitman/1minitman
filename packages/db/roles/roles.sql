@@ -47,6 +47,17 @@ REVOKE ALL ON schema_migrations FROM app_api, app_admin_api, app_worker;
 -- The one DDL action the worker may perform, through a SECURITY DEFINER function (migration 0006).
 GRANT EXECUTE ON FUNCTION ensure_monthly_partitions(text, date, int) TO app_worker;
 
+-- Migration 0007 revoked EXECUTE from PUBLIC on the functions below; these are the only callers.
+-- is_blocked_pair() is called by the profiles_read policy, so every role that reads profiles needs it.
+GRANT EXECUTE ON FUNCTION is_blocked_pair(uuid, uuid) TO app_api, app_admin_api, app_worker;
+-- The matching functions run as SECURITY DEFINER with an actor guard: the member API calls them
+-- with app.user_id set to the acting member; the worker calls them with no member context.
+-- The admin API does not call them (no grant).
+GRANT EXECUTE ON FUNCTION record_reaction(uuid, uuid, reaction_t, uuid, feed_surface_t) TO app_api, app_worker;
+GRANT EXECUTE ON FUNCTION undo_reaction(uuid, uuid, text) TO app_api, app_worker;
+GRANT EXECUTE ON FUNCTION decide_intro(uuid, uuid, intro_decision_t) TO app_api, app_worker;
+GRANT EXECUTE ON FUNCTION unmatch(uuid, uuid) TO app_api, app_worker;
+
 -- Analytics: aggregates only.
 GRANT SELECT ON mv_admin_daily_kpis, mv_revenue_daily, mv_moderation_sla, v_research_summary TO app_readonly;
 GRANT SELECT ON mv_admin_daily_kpis_by_country, mv_active_users_daily, store_installs_daily, api_request_ip_rollups TO app_readonly;
