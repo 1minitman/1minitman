@@ -124,7 +124,7 @@ Errors are always `problem+json` with a request id: throw `ProblemError` and the
 
 ### A database change
 
-1. Add the next numbered file in `packages/db/migrations/` (the next number is `0006`). Never edit a
+1. Add the next numbered file in `packages/db/migrations/` (the next number is `0008`). Never edit a
    file that has been applied.
 2. `pnpm db:migrate`, then `pnpm db:roles` (new tables get the standard grants; add any
    table-specific `REVOKE` to `packages/db/roles/roles.sql`).
