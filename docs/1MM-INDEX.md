@@ -13,6 +13,9 @@ This is the map of every document in the repository. Start here when you need to
 
 ## Reading order
 
+The engineer leading the build starts with [1MM-PLANNER](1MM-PLANNER.md): the decisions to make, the
+files to read first and the first tasks to give to agents.
+
 1. [README](../README.md) and [USAGE](USAGE.md): what the project is and how to run it.
 2. [AGENTS](../AGENTS.md) and [1MM-STD-02](standards/1MM-STD-02-AGENTIC-OPERATIONS.md): how work is done and recorded.
 3. [1MM-STD-06](standards/1MM-STD-06-API-FIRST.md): the API-first rule every task follows.
@@ -122,15 +125,16 @@ Every derived document is named `1MM-<SERIES>-<NN>-<UPPER-KEBAB-TITLE>.md`.
 
 ## Other documents
 
-| Document                                                           | What it is                                                                   |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| [README](../README.md)                                             | Project overview                                                             |
-| [AGENTS](../AGENTS.md)                                             | Entry point for coding agents (`CLAUDE.md` imports it)                       |
-| [CONTRIBUTING](../CONTRIBUTING.md)                                 | Contribution essentials                                                      |
-| [SECURITY](../SECURITY.md)                                         | How to report a vulnerability                                                |
-| [USAGE](USAGE.md)                                                  | How the parts fit, how to run them and where each key and account comes from |
-| [Schema data dictionary](../packages/db/SCHEMA_DATA_DICTIONARY.md) | Every table by domain                                                        |
-| [Migrations README](../packages/db/migrations/README.md)           | Migration file rules                                                         |
+| Document                                                           | What it is                                                                      |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| [1MM-PLANNER](1MM-PLANNER.md)                                      | Where to start: decisions needed, reading order and the first stage with agents |
+| [README](../README.md)                                             | Project overview                                                                |
+| [AGENTS](../AGENTS.md)                                             | Entry point for coding agents (`CLAUDE.md` imports it)                          |
+| [CONTRIBUTING](../CONTRIBUTING.md)                                 | Contribution essentials                                                         |
+| [SECURITY](../SECURITY.md)                                         | How to report a vulnerability                                                   |
+| [USAGE](USAGE.md)                                                  | How the parts fit, how to run them and where each key and account comes from    |
+| [Schema data dictionary](../packages/db/SCHEMA_DATA_DICTIONARY.md) | Every table by domain                                                           |
+| [Migrations README](../packages/db/migrations/README.md)           | Migration file rules                                                            |
 
 ## Sources that are not in this repository
 
