@@ -62,6 +62,7 @@ conflict (for example `400` and `422` for the same validation failure).
 - Checks: the registry tests in [1MM-STD-13 §8](../standards/1MM-STD-13-ERROR-CODES.md) (codes
   unique and well-formed; every code has a message; every operation declares its errors; a sweep
   finds no unregistered code; document and code lists are equal).
+- Clients raise the same field codes before sending and show `error.field.<code>`: [1MM-STD-21](../standards/1MM-STD-21-CLIENT-INPUT-VALIDATION.md) and [1MM-ADR-0080](1MM-ADR-0080-CLIENT-INPUT-VALIDATION-STRATEGY.md).
 
 ## Revisit when
 

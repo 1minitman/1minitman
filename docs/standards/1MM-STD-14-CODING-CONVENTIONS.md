@@ -473,7 +473,9 @@ Working rules:
    only). If two workspaces use it, put it in the catalogue.
 3. Adding a package to `onlyBuiltDependencies` is a security decision reviewed by a code owner.
 4. CI installs with `--frozen-lockfile` and fails on a high or critical advisory
-   (`pnpm audit:deps`). Dependabot proposes updates weekly after a five-day cool-down.
+   (`pnpm audit:deps`). Dependabot does not open update pull requests (switched off on
+   25 Nov 2026); an engineer proposes updates by pull request (the 3-day `minimumReleaseAge` still
+   applies), and Dependabot alerts report vulnerable versions.
 5. Server-only packages (`@1minitman/db`, `postgres`, `drizzle-orm`, `pg-boss`) are never a
    dependency of a client app or a UI package.
 6. Expo-managed packages keep the versions the SDK expects (`~58.x`); change them with the SDK,

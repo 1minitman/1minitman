@@ -52,6 +52,9 @@ task and follow them without exception; work that breaks one is not merged.
 - [1MM-STD-06 API first](docs/standards/1MM-STD-06-API-FIRST.md): no API, no client code.
 - [1MM-STD-04 Brand guide](docs/standards/1MM-STD-04-BRAND-GUIDE.md): the developer and agent
   contract for anything a person sees or reads; every UI pull request passes its §17 checklist.
+  Every screen that takes input also follows
+  [1MM-STD-21 Client input validation](docs/standards/1MM-STD-21-CLIENT-INPUT-VALIDATION.md)
+  (proposed, [1MM-ADR-0080](docs/adrs/1MM-ADR-0080-CLIENT-INPUT-VALIDATION-STRATEGY.md)).
 
 ## Reading order
 

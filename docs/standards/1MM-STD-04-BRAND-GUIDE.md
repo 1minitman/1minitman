@@ -514,6 +514,8 @@ blocker [BG §13].
       supporting line, buttons say what happens, errors say how to fix.
 - [ ] Glossary words are used exactly; no banned or retired term; prices show two decimals.
 - [ ] Every control is a real control with a label in context; every swipe has a button.
+- [ ] Every input follows [1MM-STD-21](1MM-STD-21-CLIENT-INPUT-VALIDATION.md): shared schema,
+      limits from config, the right control and `autocomplete`, messages under the field.
 - [ ] Works at 200% text size without clipping.
 - [ ] Any new asset has a `LICENCE_LOG.csv` row.
 - [ ] Each screen root and interactive element has its `testID` / `data-testid`.

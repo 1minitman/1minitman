@@ -63,6 +63,7 @@ leave the warning haptic on destructive confirms untested.
   [TR §2.4]; VoiceOver and TalkBack passes are manual for each release [BG §13]; the
   accessibility audit is a launch-gate item in
   [MOD-19](../execution/1MM-EXE-MOD-19-HARDENING-AND-LAUNCH.md).
+- Forms: labels, error identification and suggestions, `autocomplete` and accessible authentication follow [1MM-STD-21](../standards/1MM-STD-21-CLIENT-INPUT-VALIDATION.md) and [1MM-ADR-0080](1MM-ADR-0080-CLIENT-INPUT-VALIDATION-STRATEGY.md).
 
 ## Revisit when
 

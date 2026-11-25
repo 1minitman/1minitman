@@ -64,7 +64,7 @@ GAP-STD10-01):
 | Task id  | The module task from the module plan: `MOD-07-API-03: Serve the discovery feed`. Work with no module task (tooling, CI, documents) has no prefix, as today: `Pin gitleaks to 8.30.1`. |
 | Subject  | Imperative, sentence case, no full stop, 72 characters or fewer including the task id. Says what changes, not what you did ("Add", "Reject", "Serve", not "Added", "Fixes stuff").    |
 | Body     | Optional for a small commit. Explains why. Cites the source of a rule (`[TR §8.2]`, an ADR number, a gap id) when the commit implements one.                                          |
-| Trailers | `Co-Authored-By:` lines for co-authors, including a coding agent that wrote the change, in the form the tool supplies.                                                                |
+| Trailers | `Co-Authored-By:` lines for human co-authors only. Coding agents add no attribution trailer or pull-request footer (`.claude/settings.json` turns it off, 25 Nov 2026).               |
 | Never    | Secrets, tokens, personal contact details, member data, private spec content, the retired plan's name, or a message such as "wip", "fix", "updates".                                  |
 
 Because `develop` takes squash merges only, **the pull-request title becomes the commit on

@@ -51,8 +51,8 @@ migration, run as a gated step with the `app_migrator` role" come from [TR §10.
 5. `docs/USAGE.md` and `packages/db/migrations/README.md` said the next number was `0006` after
    that file existed (GAP-STD05-03 in
    [1MM-STD-05](../standards/1MM-STD-05-README-STANDARD.md), GAP-STD06-04 in
-   [1MM-STD-06](../standards/1MM-STD-06-API-FIRST.md)). Both were corrected with migration `0007`
-   and now say `0008`.
+   [1MM-STD-06](../standards/1MM-STD-06-API-FIRST.md)). Both were corrected with migration `0007`;
+   on 25 Nov 2026 the fixed number was replaced by "the next unused number", as the gaps proposed.
 6. `0007_trx_schema_change_set.sql` is schema change set 0007 of the extensions log
    ([1MM-LOG-03](../1MM-LOG-03-TECHNICAL-REFERENCE-EXTENSIONS.md) section 3, SC-01 to SC-11):
    partitions for `edge_security_events`, the check-in window CHECK, the matching functions as

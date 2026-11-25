@@ -86,6 +86,7 @@ Every derived document is named `1MM-<SERIES>-<NN>-<UPPER-KEBAB-TITLE>.md`.
 | [1MM-STD-18](standards/1MM-STD-18-NOTIFICATIONS.md)              | Notifications standard (mobile)                                                    | 510   |
 | [1MM-STD-19](standards/1MM-STD-19-OTA-UPDATES.md)                | Over-the-air updates (mobile)                                                      | 402   |
 | [1MM-STD-20](standards/1MM-STD-20-DESIGN-SYSTEM.md)              | Design system                                                                      | 413   |
+| [1MM-STD-21](standards/1MM-STD-21-CLIENT-INPUT-VALIDATION.md)    | Client input validation                                                            | 243   |
 
 ## Database design (`docs/database/`)
 
@@ -106,7 +107,7 @@ Every derived document is named `1MM-<SERIES>-<NN>-<UPPER-KEBAB-TITLE>.md`.
 
 ## Architecture decision records (`docs/adrs/`)
 
-79 records, numbered 0001 to 0079. The list with status and date is in the [ADR index](adrs/1MM-ADR-0000-INDEX.md); new records start from the [template](adrs/1MM-ADR-0000-TEMPLATE.md).
+80 records, numbered 0001 to 0080. The list with status and date is in the [ADR index](adrs/1MM-ADR-0000-INDEX.md); new records start from the [template](adrs/1MM-ADR-0000-TEMPLATE.md).
 
 | Range        | Subject                                                                 |
 | ------------ | ----------------------------------------------------------------------- |
