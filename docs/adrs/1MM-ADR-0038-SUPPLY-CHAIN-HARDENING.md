@@ -33,8 +33,10 @@ hardening pull requests implemented these and added install-time guards that pnp
    free binary, downloaded at a pinned version and verified by SHA-256.
 5. **Client bundles:** only `VITE_`, `PUBLIC_` and `EXPO_PUBLIC_` settings can reach a client;
    CI scans the built bundles for server-only names and values.
-6. **Updates:** Dependabot proposes npm (weekly) and Actions (monthly) updates against
-   `develop`, with a 5-day cool-down. CodeQL results gate both branches.
+6. **Updates:** Dependabot proposed npm (weekly) and Actions (monthly) updates against
+   `develop`, with a 5-day cool-down. **Amended 25 Nov 2026 (owner instruction):** version-update
+   pull requests are switched off (`open-pull-requests-limit: 0`); engineers propose updates by
+   pull request and Dependabot alerts stay on. CodeQL results gate both branches.
 7. Dependency and build configuration (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`,
    `turbo.json`, `scripts/`, `.github/`) is owned in `.github/CODEOWNERS`.
 
@@ -54,7 +56,7 @@ hardening pull requests implemented these and added install-time guards that pnp
   or a committed key is stopped before it reaches `develop`.
 - Harder: a genuine urgent fix published today cannot be installed for 3 days without a reviewed
   exception; a new dependency with a build script fails the install until it is allow-listed;
-  pinned hashes need regular Dependabot updates.
+  pinned hashes need regular updates, now proposed by hand since Dependabot no longer opens them.
 - Container image scanning [TR §13.4] is not in the repository yet; it is due with the first
   hosted deployment.
 

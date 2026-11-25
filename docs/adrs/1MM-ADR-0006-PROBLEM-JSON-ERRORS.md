@@ -58,6 +58,7 @@ carry the upsell target or the entitlement key.
   plans list the problems of each endpoint (§4.1).
 - Check: API tests assert the content type and the request id on error paths
   ([1MM-STD-01](../standards/1MM-STD-01-TESTING-STRATEGY.md)).
+- Clients map `validation` failures to form fields as set out in [1MM-STD-21](../standards/1MM-STD-21-CLIENT-INPUT-VALIDATION.md) and [1MM-ADR-0080](1MM-ADR-0080-CLIENT-INPUT-VALIDATION-STRATEGY.md).
 
 ## Revisit when
 

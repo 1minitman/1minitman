@@ -17,13 +17,13 @@ and when you review someone else's work.
 
 ## 1. Who may contribute
 
-| Contributor          | Access                                                                  | How they contribute                                                                                          |
-| -------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Code owners          | Write access; listed in `.github/CODEOWNERS`                            | Review and merge. Their own changes still go by pull request and need another code owner's approval.         |
-| Team engineers       | Write access (may push branches, cannot push to the protected branches) | Branch in the repository, pull request into `develop`.                                                       |
-| Coding agents        | The access of the engineer who runs them; never their own admin rights  | Same flow as an engineer, under [1MM-STD-02](1MM-STD-02-AGENTIC-OPERATIONS.md). They never approve or merge. |
-| Outside contributors | Read (the repository is public)                                         | Fork, pull request from the fork (section 9).                                                                |
-| Dependabot           | Opens pull requests into `develop` (`.github/dependabot.yml`)           | Reviewed like any dependency change (section 12).                                                            |
+| Contributor          | Access                                                                       | How they contribute                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Code owners          | Write access; listed in `.github/CODEOWNERS`                                 | Review and merge. Their own changes still go by pull request and need another code owner's approval.         |
+| Team engineers       | Write access (may push branches, cannot push to the protected branches)      | Branch in the repository, pull request into `develop`.                                                       |
+| Coding agents        | The access of the engineer who runs them; never their own admin rights       | Same flow as an engineer, under [1MM-STD-02](1MM-STD-02-AGENTIC-OPERATIONS.md). They never approve or merge. |
+| Outside contributors | Read (the repository is public)                                              | Fork, pull request from the fork (section 9).                                                                |
+| Dependabot           | Alerts only; version-update pull requests are off (`.github/dependabot.yml`) | Engineers propose dependency updates by pull request, reviewed like any dependency change (section 12).      |
 
 The repository is public: anyone can read both branches. The rules below control who can change
 them (`docs/USAGE.md` §8). The product specifications are held outside the repository; a
@@ -292,7 +292,7 @@ Guards already in the repository:
 | Frozen lockfile                                      | `verify`: `pnpm install --frozen-lockfile` | CI installs exactly what was reviewed                                                                                                                                                                 |
 | Audit                                                | `verify`: `pnpm audit:deps`                | Fails on high and critical advisories                                                                                                                                                                 |
 | Workspace rules                                      | `pnpm check:repo`                          | Every workspace is `private`; packages declare `exports`; internal references are `workspace:*`; apps are never imported; `react`, `react-dom`, `react-native`, `typescript` and `zod` use `catalog:` |
-| Dependabot cool-down                                 | `.github/dependabot.yml`                   | Updates are proposed 5 days after release, weekly for npm (minor and patch grouped), monthly for GitHub Actions                                                                                       |
+| Dependabot cool-down                                 | `.github/dependabot.yml`                   | Version-update pull requests are off (limit 0, 25 Nov 2026); the 5-day cool-down is kept for when they are turned back on                                                                             |
 | Pinned actions                                       | `pnpm check:repo`                          | Every GitHub Action is pinned to a full commit hash                                                                                                                                                   |
 
 Procedure:

@@ -42,6 +42,10 @@ GAP-STD13-01.
 
 ### 2.1 Members
 
+This is the target shape. Until `MOD-00-API-01` closes GAP-STD13-02 the scaffold sends
+`errors: [{path, message}]` with no `code`, and `reason` is optional; clients must not depend on
+`errors[].code` before then ([1MM-STD-21](1MM-STD-21-CLIENT-INPUT-VALIDATION.md) §7).
+
 | Member                | Required                  | Rule                                                                                                                                                                             |
 | --------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `type`                | yes                       | `tag:1minitman.com,2026:problem:<reason>`. An identifier, never fetched. `about:blank` is no longer emitted once `MOD-00-API-01` lands (GAP-STD13-02).                           |

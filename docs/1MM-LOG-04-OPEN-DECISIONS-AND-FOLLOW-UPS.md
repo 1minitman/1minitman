@@ -710,7 +710,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** No task; a documentation pull request at the start of MOD-00
 - **Size:** small
 - **Gaps:** GAP-DB02-02, GAP-STD05-03, GAP-STD06-04
-- **Status:** Open
+- **Status:** Done (25 Nov 2026): both files now say "the next unused number", and the README's `db:pull` wording is correct
 
 **REP-003** · `pnpm db:roles` fails closed when `APP_ENV` is unset
 

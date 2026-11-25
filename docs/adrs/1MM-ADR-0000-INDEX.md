@@ -22,7 +22,7 @@ This is the list of every architecture decision record. Open it to find the deci
 
 ## Adding an ADR
 
-1. Copy the [template](1MM-ADR-0000-TEMPLATE.md) to `1MM-ADR-<next number>-<UPPER-KEBAB-TITLE>.md`. The next free number is **0080**.
+1. Copy the [template](1MM-ADR-0000-TEMPLATE.md) to `1MM-ADR-<next number>-<UPPER-KEBAB-TITLE>.md`. The next free number is **0081**.
 2. Record the decision first in the Technical Reference extensions log when it extends the Technical Reference ([1MM-LOG-03](../1MM-LOG-03-TECHNICAL-REFERENCE-EXTENSIONS.md)).
 3. Add its row to this index in the same pull request. Never renumber or delete an ADR: supersede it.
 
@@ -120,8 +120,15 @@ This is the list of every architecture decision record. Open it to find the deci
 | [0078](1MM-ADR-0078-OTA-UPDATE-POLICY.md)                                  | Over-the-air update policy: `appVersion` runtime, one-way channels, staged rollout         | Proposed | 24 Nov 2026 (proposed) | Engineering recommendation in 1MM-STD-19, awaiting the owner (GAP-STD19-04 needs an owner decision on code signing)                              |
 | [0079](1MM-ADR-0079-I18N-KEY-NAMING.md)                                    | i18n key naming: dotted keys with lower snake_case segments                                | Proposed | 24 Nov 2026 (proposed) | Engineering recommendation, applied across this documentation set (1MM-STD-17 is aligned to it); awaiting the owner                              |
 
+## Decisions made on 25 Nov 2026
+
+| No.                                                      | Decision                                                                        | Status   | Decided                | Decided by                                                                           |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------- | -------- | ---------------------- | ------------------------------------------------------------------------------------ |
+| [0080](1MM-ADR-0080-CLIENT-INPUT-VALIDATION-STRATEGY.md) | Client input validation: shared schemas, config-driven limits, server authority | Proposed | 25 Nov 2026 (proposed) | Engineering recommendation in 1MM-STD-21, at the owner's request; awaiting the owner |
+
 ## Change log
 
 | Version | Date        | Change                                  |
 | ------- | ----------- | --------------------------------------- |
 | v1.0    | 24 Nov 2026 | First index: 79 records (0001 to 0079). |
+| v1.1    | 25 Nov 2026 | 0080 added (client input validation).   |

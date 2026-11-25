@@ -65,7 +65,9 @@ Rules for schemas:
 - Clients parse responses **leniently about additions**: unknown fields are ignored, so the API can
   grow ([1MM-STD-06](1MM-STD-06-API-FIRST.md) section 7).
 - One schema per shape, in `packages/contracts`; the app's forms reuse it (react-hook-form + zod
-  [TR §5.1]). A copy of a rule in a client is a bug waiting for the server rule to change.
+  [TR §5.1]). A copy of a rule in a client is a bug waiting for the server rule to change. A
+  schema with config-driven limits is exported as a function of those limits, so the API and the
+  client build it with the same live values ([1MM-STD-21](1MM-STD-21-CLIENT-INPUT-VALIDATION.md) §3).
 - Validation never echoes the rejected value into logs or problem documents.
 
 ## 3. Authorisation: four checks, every request

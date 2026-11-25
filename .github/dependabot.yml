@@ -1,10 +1,15 @@
 version: 2
+# Version-update pull requests are switched off (owner instruction, 25 Nov 2026): the limit of 0
+# stops Dependabot opening them. Dependency updates are proposed by an engineer in a reviewed pull
+# request (1MM-STD-14 §15). Dependabot alerts still report vulnerable versions; security-update
+# pull requests are a repository setting (Settings → Code security), not this file.
+# The schedule, cool-down and groups stay so that raising the limit restores the old behaviour.
 updates:
   - package-ecosystem: npm
     directory: /
     schedule: { interval: weekly }
     target-branch: develop
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     # Wait before proposing a new release: most malicious publishes are pulled within days.
     cooldown:
       default-days: 5
@@ -15,5 +20,6 @@ updates:
     directory: /
     schedule: { interval: monthly }
     target-branch: develop
+    open-pull-requests-limit: 0
     cooldown:
       default-days: 5
