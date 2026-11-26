@@ -62,7 +62,10 @@ export interface MemberGuards {
    * cannot be read (fail closed, GAP-MOD00-17).
    */
   requireMember: () => ReturnType<typeof createMiddleware<AppEnv>>;
-  /** For `M+` routes, after `requireMember()`: 403 `reauth_required` outside the window. */
+  /**
+   * For `M+` routes, after `requireMember()`: 403 `reauth_required` outside the window, 503
+   * `dependency_unavailable` when the window cannot be read (fail closed, as for the denylist).
+   */
   requireRecentAuth: () => ReturnType<typeof createMiddleware<AppEnv>>;
 }
 
@@ -93,9 +96,16 @@ export const createMemberGuards = (ports: MemberAuthPorts): MemberGuards => ({
     createMiddleware<AppEnv>(async (c, next) => {
       const principal = c.get('member');
       if (!principal) return problemResponse(c, 'unauthenticated');
-      if (!(await ports.recentAuth.isRecent(principal))) {
-        return problemResponse(c, 'reauth_required');
+      let recent: boolean;
+      try {
+        recent = await ports.recentAuth.isRecent(principal);
+      } catch (error) {
+        c.get('logger').error('re-auth window unavailable, refusing request', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return problemResponse(c, 'dependency_unavailable');
       }
+      if (!recent) return problemResponse(c, 'reauth_required');
       return next();
     }),
 });

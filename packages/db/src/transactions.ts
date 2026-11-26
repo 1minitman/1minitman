@@ -20,12 +20,19 @@ const requireSurface = (database: Database, expected: DatabaseSurface, helper: s
 };
 
 /**
+ * `set_config('app.env', …, true)` that keeps the session's value (the login's role setting,
+ * TRX-056) and falls back to `APP_ENV` only when there is none, as on local and test databases.
+ */
+const appEnvFallback = (database: Database) =>
+  sql`set_config('app.env', COALESCE(NULLIF(current_setting('app.env', true), ''), ${database.appEnv}), true)`;
+
+/**
  * One member transaction on the `app_api` pool [TR §8.1], [1MM-DB-05 §4.1].
  *
  * The first statement is `SELECT set_config('app.user_id', $1, true)` (TRX-033): the id is a bound
  * parameter and the setting is transaction-local, so it never leaks to the next request through a
- * transaction-mode pooler. `app.env` is set again for the transaction so the value holds even if
- * a pooler drops startup parameters (GAP-DB05-06). Row-level security then confines every query
+ * transaction-mode pooler. `app.env` is set for the transaction from `APP_ENV` only when the session
+ * has no value: on hosted logins the role setting (TRX-056) wins. Row-level security then confines every query
  * in `fn` to that member. The id must come from the verified access token, never from the request.
  */
 export const withMemberTx = async <T>(
@@ -39,7 +46,7 @@ export const withMemberTx = async <T>(
   }
   return database.db.transaction(async (tx) => {
     await tx.execute(
-      sql`SELECT set_config('app.user_id', ${memberId}, true), set_config('app.env', ${database.appEnv}, true)`,
+      sql`SELECT set_config('app.user_id', ${memberId}, true), ${appEnvFallback(database)}`,
     );
     return fn(tx);
   });
@@ -51,9 +58,7 @@ export const withMemberTx = async <T>(
  */
 const withBypassTx = <T>(database: Database, fn: (tx: Tx) => Promise<T>): Promise<T> =>
   database.db.transaction(async (tx) => {
-    await tx.execute(
-      sql`SELECT set_config('app.user_id', '', true), set_config('app.env', ${database.appEnv}, true)`,
-    );
+    await tx.execute(sql`SELECT set_config('app.user_id', '', true), ${appEnvFallback(database)}`);
     return fn(tx);
   });
 

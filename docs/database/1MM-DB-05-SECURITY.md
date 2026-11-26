@@ -179,9 +179,11 @@ Rules:
    as `app_api` the first DDL statement is refused. It is still wrong in a hosted release step,
    which must set the migration URL explicitly.
 5. Every connection runs in UTC (`client.ts` sets `TimeZone`), which the schema assumes.
-6. Every connection sends `app.env` (from `APP_ENV`) as a startup parameter, and the three
-   transaction helpers set it again with `set_config(..., true)` so the value holds even through a
-   pooler that drops startup parameters (GAP-DB05-06 stays open for the per-login settings).
+6. `app.env` is a per-login role setting (`ALTER ROLE … SET app.env`, TRX-056) and is not sent as
+   a startup parameter, which transaction-mode poolers refuse. The three transaction helpers set
+   it with `set_config(..., true)` from `APP_ENV` only when the session has no value (local and
+   test databases), so the role setting always wins. API and worker start-up call
+   `assertAppEnv()`, which refuses to start production unless `app_env()` reports `production`.
 
 ## 4. Row-level security
 
