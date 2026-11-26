@@ -1,19 +1,19 @@
 # Every change needs an approving review from a code owner who is not the author.
 # A code owner must have write access to the repository for the rule to count.
-* @proffnick Ikapeisaac3@gmail.com
+* @proffnick @ikape
 
 # Sensitive areas, listed so they stay owned even if the default line changes.
-/.github/           @proffnick Ikapeisaac3@gmail.com
-/infra/             @proffnick Ikapeisaac3@gmail.com
-/packages/db/       @proffnick Ikapeisaac3@gmail.com
-/apps/api/          @proffnick Ikapeisaac3@gmail.com
-/.env.example       @proffnick Ikapeisaac3@gmail.com
+/.github/           @proffnick @ikape
+/infra/             @proffnick @ikape
+/packages/db/       @proffnick @ikape
+/apps/api/          @proffnick @ikape
+/.env.example       @proffnick @ikape
 
 # Dependencies and build configuration: a changed lockfile or install setting is a supply-chain change.
-/package.json        @proffnick Ikapeisaac3@gmail.com
-/pnpm-lock.yaml      @proffnick Ikapeisaac3@gmail.com
-/pnpm-workspace.yaml @proffnick Ikapeisaac3@gmail.com
-/turbo.json          @proffnick Ikapeisaac3@gmail.com
-/scripts/            @proffnick Ikapeisaac3@gmail.com
-/packages/contracts/ @proffnick Ikapeisaac3@gmail.com
-/packages/tokens/    @proffnick Ikapeisaac3@gmail.com
+/package.json        @proffnick @ikape
+/pnpm-lock.yaml      @proffnick @ikape
+/pnpm-workspace.yaml @proffnick @ikape
+/turbo.json          @proffnick @ikape
+/scripts/            @proffnick @ikape
+/packages/contracts/ @proffnick @ikape
+/packages/tokens/    @proffnick @ikape
