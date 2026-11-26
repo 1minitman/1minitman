@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'bun:test';
 import { AppEnvMismatchError, assertAppEnv, createDatabase } from './client';
+import { databaseReady } from './test-env';
 
 // Start-up check for TRX-056, on PostgreSQL 16 (`pnpm services:up && pnpm db:migrate && pnpm db:roles`).
 // The local login roles carry no app.env role setting, so a session `SET` stands in for one.
 const url = process.env.ADMIN_DATABASE_URL;
 
-describe.skipIf(!url)('assertAppEnv at start-up', () => {
+describe.skipIf(!databaseReady({ ADMIN_DATABASE_URL: url }))('assertAppEnv at start-up', () => {
   const open = (appEnv: string) =>
     createDatabase({ url: url ?? '', surface: 'admin', appEnv, max: 1 });
 
