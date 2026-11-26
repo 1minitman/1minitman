@@ -3,7 +3,7 @@
 |              |                                                                                                                                                                                                                                                               |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Document** | 1MM-LOG-04                                                                                                                                                                                                                                                    |
-| **Status**   | Running log · started 24 Nov 2026 · v1.1                                                                                                                                                                                                                      |
+| **Status**   | Running log · started 24 Nov 2026 · v1.2                                                                                                                                                                                                                      |
 | **Audience** | The owner and the people who answer for the owner (lawyer, design, trust-and-safety lead); engineers and coding agents                                                                                                                                        |
 | **Owner**    | Engineering lead (code owners)                                                                                                                                                                                                                                |
 | **Sources**  | The "Gaps raised" tables of every document under `docs/execution/`, `docs/standards/`, `docs/database/` and `docs/resources/`; the repository as it stands on 24 Nov 2026; [TR], [SQL], [OD-nn], [ADM], [WEB], [INV], [BG], [UF]                              |
@@ -663,8 +663,8 @@ the question is already live. Each entry's **Status** line shows whether it is O
 - **Blocks:** MOD-19's exit gate (the launch gate depends on the scorecard).
 - **Who answers:** Owner
 - **Gaps:** GAP-EXE00-05
-- **Answer:** (a), run on the stage 40 build, sessions entered through A35, themes fixed before `MOD-19-QA-06`. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026. The person responsible is named by the owner.
-- **Status:** Answered in part · person responsible to name
+- **Answer:** (a), run on the stage 40 build, sessions entered through A35, themes fixed before `MOD-19-QA-06`. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026. Responsible role: the State Manager (owner, 26 Nov 2026); the person in the role is named outside this repository.
+- **Status:** Answered
 
 ## Part B · Repository follow-ups
 
@@ -1515,5 +1515,6 @@ Technical Reference or schema part.
 
 | Version | Date        | Change                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.2    | 26 Nov 2026 | DEC-051 answered: the State Manager runs Lagos usability round 1.                                                                                                                                                                                                                                                                                                                            |
 | v1.1    | 26 Nov 2026 | DEC-001 answered (awaiting the lawyer); DEC-002 to DEC-012 decided by the owner (DEC-006 option (b), the rest the recommended default). DEC-013 to DEC-051 decided under the owner's standing instruction (zero or least cost, lean, industry practice) except those that need the lawyer, a value or a name, which are marked open; legal items carry an interim default for building only. |
 | v1.0    | 24 Nov 2026 | First issue: 49 decisions from 50 DECISION gaps; 60 repository follow-ups and 2 checked items from 71 REPO gaps, each verified against the repository.                                                                                                                                                                                                                                       |
