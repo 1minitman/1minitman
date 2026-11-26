@@ -1,4 +1,4 @@
-import { SURFACES, SURFACE_NAMES, type SurfaceName } from '@1minitman/contracts';
+import { MEMBER_WS_PATH, SURFACES, SURFACE_NAMES, type SurfaceName } from '@1minitman/contracts';
 import { Scalar } from '@scalar/hono-api-reference';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -64,6 +64,11 @@ export const createApp = (deps: AppDeps) => {
   app.notFound(notFoundHandler);
 
   app.route('/', systemRouter(deps));
+  // The member WebSocket (MOD-00-API-07). Not an OpenAPI operation: the upgrade carries no
+  // credential (the token is the first frame, TRX-034) and the frames are described by the
+  // realtime envelopes in packages/contracts.
+  const { gateway } = surfaceDeps.realtime;
+  app.get(MEMBER_WS_PATH, (c) => gateway.upgrade(c));
   for (const name of SURFACE_NAMES) app.route('/', createSurfaceRouter(name, surfaceDeps));
   app.route('/', createWebhooksRouter(surfaceDeps));
 

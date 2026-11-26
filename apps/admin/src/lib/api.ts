@@ -19,9 +19,10 @@ export const healthQuery = queryOptions({
 export const readinessQuery = queryOptions({
   queryKey: ['system', 'ready'],
   queryFn: async () => {
-    // 503 carries the same body as 200: a degraded report is still a report.
+    // 503 carries the same body as 200: a degraded report is still a report. Any other error is
+    // a problem document, not a report.
     const { data, error } = await api.GET('/ready');
-    const report = data ?? error;
+    const report = data ?? (error && 'checks' in error ? error : undefined);
     if (!report) throw new Error('The API did not answer.');
     return report;
   },

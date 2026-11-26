@@ -3,7 +3,7 @@
 |              |                                                                                                                                                                                                                                                               |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Document** | 1MM-LOG-04                                                                                                                                                                                                                                                    |
-| **Status**   | Running log · started 24 Nov 2026 · v1.1                                                                                                                                                                                                                      |
+| **Status**   | Running log · started 24 Nov 2026 · v1.2                                                                                                                                                                                                                      |
 | **Audience** | The owner and the people who answer for the owner (lawyer, design, trust-and-safety lead); engineers and coding agents                                                                                                                                        |
 | **Owner**    | Engineering lead (code owners)                                                                                                                                                                                                                                |
 | **Sources**  | The "Gaps raised" tables of every document under `docs/execution/`, `docs/standards/`, `docs/database/` and `docs/resources/`; the repository as it stands on 24 Nov 2026; [TR], [SQL], [OD-nn], [ADM], [WEB], [INV], [BG], [UF]                              |
@@ -663,8 +663,8 @@ the question is already live. Each entry's **Status** line shows whether it is O
 - **Blocks:** MOD-19's exit gate (the launch gate depends on the scorecard).
 - **Who answers:** Owner
 - **Gaps:** GAP-EXE00-05
-- **Answer:** (a), run on the stage 40 build, sessions entered through A35, themes fixed before `MOD-19-QA-06`. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026. The person responsible is named by the owner.
-- **Status:** Answered in part · person responsible to name
+- **Answer:** (a), run on the stage 40 build, sessions entered through A35, themes fixed before `MOD-19-QA-06`. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026. Responsible role: the State Manager (owner, 26 Nov 2026); the person in the role is named outside this repository.
+- **Status:** Answered
 
 ## Part B · Repository follow-ups
 
@@ -873,7 +873,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-API-01`
 - **Size:** small
 - **Gaps:** GAP-STD01-03, GAP-STD06-03
-- **Status:** Open
+- **Status:** Open, in part done (26 Nov 2026, `MOD-00-API-01`): `test` scripts and the enumeration tests are in `packages/contracts` and `packages/i18n`; coverage floors are enforced per workspace in `bunfig.toml` for `packages/contracts`, `packages/i18n` and `apps/api` (lines and functions; branches are GAP-MOD00-16). The other Bun workspaces get theirs with their own tasks
 
 **REP-014** · Playwright and axe for admin, web and site
 
@@ -1047,7 +1047,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-API-01`
 - **Size:** medium
 - **Gaps:** GAP-STD13-02, GAP-STD14-01
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-API-01`): registry and extension members in `packages/contracts`; `ProblemError(code)` in `apps/api/src/platform/errors.ts`; `not_found`, `internal` and field codes sent
 
 **REP-031** · `error.*` message keys and their enumeration test
 
@@ -1057,7 +1057,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-API-01`; later codes arrive with their routes
 - **Size:** small
 - **Gaps:** GAP-STD13-03
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-API-01`): `error.<code>` for §4.1 and §4.2, `error.field.<code>` for §4.3, and the catalogue test in `packages/contracts/src/messages.test.ts`
 
 **REP-032** · One key pattern for i18n keys (lower snake)
 
@@ -1119,7 +1119,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-WRK-01` (MOD-00 observability)
 - **Size:** small
 - **Gaps:** GAP-STD14-04
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-WRK-01`): `apps/worker/src/platform/logger.ts` copies the API's logger; `JobContext.logger` replaces `log`, and `LOG_LEVEL` applies
 
 **REP-038** · Job payload schemas in the worker
 
@@ -1129,7 +1129,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-WRK-01`; first needed by the first job with a payload (MOD-03)
 - **Size:** small
 - **Gaps:** GAP-STD16-01
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-WRK-01`): `JobDefinition.payload` (zod); the runner parses before `handle` and a parse error fails the job at once (`deadletter`, no retry) and raises `job.failed`
 
 #### Mobile app
 
@@ -1515,5 +1515,6 @@ Technical Reference or schema part.
 
 | Version | Date        | Change                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.2    | 26 Nov 2026 | DEC-051 answered: the State Manager runs Lagos usability round 1.                                                                                                                                                                                                                                                                                                                            |
 | v1.1    | 26 Nov 2026 | DEC-001 answered (awaiting the lawyer); DEC-002 to DEC-012 decided by the owner (DEC-006 option (b), the rest the recommended default). DEC-013 to DEC-051 decided under the owner's standing instruction (zero or least cost, lean, industry practice) except those that need the lawyer, a value or a name, which are marked open; legal items carry an interim default for building only. |
 | v1.0    | 24 Nov 2026 | First issue: 49 decisions from 50 DECISION gaps; 60 repository follow-ups and 2 checked items from 71 REPO gaps, each verified against the repository.                                                                                                                                                                                                                                       |

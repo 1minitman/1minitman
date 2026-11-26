@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from 'bun:test';
 import postgres from 'postgres';
+import { databaseReady } from './test-env';
 
 // Proves the role separation on a real database (`pnpm services:up && pnpm db:migrate && pnpm db:roles`).
 const urls = {
@@ -7,7 +8,7 @@ const urls = {
   worker: process.env.WORKER_DATABASE_URL,
   queue: process.env.QUEUE_DATABASE_URL,
 };
-const ready = Object.values(urls).every(Boolean);
+const ready = databaseReady(urls);
 const connect = (url: string | undefined) => postgres(url ?? '', { max: 1, onnotice: () => {} });
 const api = connect(urls.api);
 const worker = connect(urls.worker);

@@ -122,6 +122,60 @@ Steps:
 
 Errors are always `problem+json` with a request id: throw `ProblemError` and the API formats it.
 
+#### Guarding a route
+
+Guards live in `apps/api/src/platform/auth` and reach modules as `deps.auth` (`SurfaceDeps`).
+Attach them per route, because the sign-in routes of both surfaces stay open:
+
+```ts
+router.get('/me', deps.auth.member.requireMember(), handler); // M
+router.put(
+  '/me/password',
+  deps.auth.member.requireMember(),
+  deps.auth.member.requireRecentAuth(),
+  handler,
+); // M+
+router.get('/users', deps.auth.admin.requireAdmin('users.read'), handler);
+```
+
+Handlers read the caller with `currentMember(c)` or `currentAdmin(c)`. Every check is a port,
+and until its owning module supplies it the composition root wires a stub that refuses, so a
+guarded route answers 401:
+
+| Port (`platform/auth`)                          | Supplied by     | Contract                                                                                                                                                                                                    |
+| ----------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AccessTokenVerifier.verify(token)`             | `MOD-03-API-02` | The `{memberId, sessionId}` of a valid 15-minute EdDSA access token, `null` for any other token (401 `unauthenticated`)                                                                                     |
+| `SessionDenyList.isDenied(sessionId)`           | built here      | Redis `sess:deny:{session}` (MOD-03 writes it); denied is 401 `session_expired`; Redis down or no answer within 100 ms (GAP-STD16-02) is 503 `dependency_unavailable` (GAP-MOD00-17)                        |
+| `RecentAuthCheck.isRecent(principal)`           | `MOD-03-API-02` | Re-authenticated within the window of [TR §8.2]; otherwise 403 `reauth_required`                                                                                                                            |
+| `AdminAuthPorts.session(request)`               | `MOD-01-API-01` | Resolves the session cookie to `{adminId, sessionId}`, or refuses with `unauthenticated` or `session_expired`                                                                                               |
+| `status`, `permission`, `scope`, `ip`, `reauth` | `MOD-01-API-03` | Run in this order after the session ([ADM §1.1]); each returns `{allow: true}` or a refusal with its registry code: `permission` (with the key), `not_found` for scope, `ip_not_allowed`, `reauth_required` |
+
+The first refusal ends the request and later checks never run. A member token is never read on
+`/admin/v1`, and the admin cookie is never read on `/v1`.
+
+#### Writes, lists and versions
+
+Three platform helpers cover rules 6 to 8 of the MOD-00 plan (§4.3):
+
+- **`Idempotency-Key`**: `idempotent(deps.idempotency)` per write route, after the auth guard.
+  The first request runs the handler and its response is kept in Redis
+  `idem:{METHOD route}:{key}` for 24 h; the same key and body replays it without running the
+  handler; another body is 409 `idempotency_key_reused`; a replay while the first runs is 409
+  `idempotency_in_progress`; no key or a key that is not a UUID is 400
+  `idempotency_key_required` (`{ required: false }` makes the header optional). 5xx and
+  problems the client answers by resending (`auth`, `backoff`, `fix`, `refresh`) free the key.
+  If Redis does not answer within 100 ms the request is 503 and the handler does not run.
+- **Lists**: `listQuerySchema([...sorts], default)` from `@1minitman/contracts` for the query
+  (`limit` 25, 50 or 100; unknown `sort` is 422), and `defineKeysetList({ list, sorts, id })` from
+  `platform/pagination` for the query parts and the response (`next_cursor`, `prev_cursor`,
+  `has_more`). Each sort is a NOT NULL, indexed column; the cursor is checked against the list and
+  sort that issued it, and a bad one is 422 on `cursor`. Never OFFSET.
+- **`If-Match`**: send `setETag(c, token)` on reads (token from `versionToken()` in
+  `@1minitman/db`), put `requireIfMatch()` on the write (428 without it), write with
+  `updateIfMatch(tx, …)` and answer with `settleConditionalWrite(c, result)`: a stale tag is 412
+  and changes nothing, a missing row is 404. The version is the row's `version` column where it
+  has one, otherwise `updated_at` in whole microseconds.
+
 ### A database change
 
 1. Add the next numbered file in `packages/db/migrations/` (the next unused number: one above the
@@ -258,7 +312,7 @@ on a private repository need a paid GitHub plan).
 | A secret in the code                   | Pre-commit hook, GitHub push protection, CI secret scan.                                                                                                                                                                                                                                                                                                      |
 | A secret in a browser or app bundle    | Only `VITE_`, `PUBLIC_` and `EXPO_PUBLIC_` names can reach a client; each app validates its settings when it starts; CI scans the built bundles for server-only names and values.                                                                                                                                                                             |
 | Bad input                              | Every route is declared with a zod schema; invalid requests are rejected before any use case runs.                                                                                                                                                                                                                                                            |
-| Flooding and guessing                  | Redis sliding-window limiter (`rateLimit()` in `apps/api/src/platform/rate-limit`), attached per route with the limits from the Technical Reference (13.3).                                                                                                                                                                                                   |
+| Flooding and guessing                  | Redis limiter (`rateLimit(deps.rateLimits, '<policy key>')` in `apps/api/src/platform/rate-limit`): limits, scope, algorithm and lockout come from `rate_limit_policies` and reload on change without a restart.                                                                                                                                              |
 | A compromised program reaching too far | Separate database users: the API cannot change the schema or read admin-only tables, the worker cannot run DDL, the job queue cannot see member data, nobody can rewrite the audit log. Tests prove each of these on a real database.                                                                                                                         |
 | Data left in the job queue             | Job payloads carry ids only: never secrets, codes or personal data.                                                                                                                                                                                                                                                                                           |
 | Stolen sign-in                         | Web: HttpOnly, Secure cookies only. App: tokens in `expo-secure-store` (Keychain / Keystore) only. Never one shared storage helper for both.                                                                                                                                                                                                                  |

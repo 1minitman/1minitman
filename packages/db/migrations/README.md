@@ -10,4 +10,5 @@
 - After a migration: `pnpm db:migrate`, then `pnpm db:roles` (grants follow the schema). The Drizzle models
   in `src/schema/` are hand-curated: `pnpm db:pull` writes reference output to the git-ignored
   `.introspected/` folder and never touches `src/schema/`; copy the tables that changed from there and tidy
-  them by hand.
+  them by hand, then run `pnpm db:lint-schema` (CI runs it too): it fails when a model names a table or
+  column the migrations do not have, or states a type, nullability or default differently.

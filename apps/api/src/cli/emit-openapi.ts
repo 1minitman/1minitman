@@ -2,8 +2,20 @@ import { SURFACE_NAMES } from '@1minitman/contracts';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildOpenApiDocument, type AppDeps } from '../app';
+import { denyAllAuth } from '../platform/auth';
+import { createMemoryIdempotencyStore } from '../platform/idempotency';
 import { createLogger } from '../platform/logger';
-import { createMemoryRateLimiter } from '../platform/rate-limit';
+import {
+  createMemoryRateLimiter,
+  createPolicyStore,
+  staticPolicySource,
+} from '../platform/rate-limit';
+import { createInMemoryRealtime } from '../platform/realtime';
+import {
+  createMemoryWebhookStore,
+  createWebhookIntake,
+  pendingRowWebhookQueue,
+} from '../platform/webhooks';
 
 // Writes one OpenAPI document per surface into packages/contracts/openapi/.
 // Needs no database or Redis: documents are built from route definitions alone.
@@ -14,7 +26,20 @@ const deps: AppDeps = {
     CORS_ALLOWED_ORIGINS: [],
   },
   logger: createLogger('error'),
-  surfaces: { rateLimiter: createMemoryRateLimiter() },
+  surfaces: {
+    rateLimits: {
+      policies: createPolicyStore(staticPolicySource([])),
+      limiter: createMemoryRateLimiter(),
+    },
+    auth: denyAllAuth(),
+    idempotency: createMemoryIdempotencyStore(),
+    realtime: createInMemoryRealtime(createLogger('error')),
+    webhooks: createWebhookIntake({
+      store: createMemoryWebhookStore(),
+      queue: pendingRowWebhookQueue,
+      logger: createLogger('error'),
+    }),
+  },
   checkReadiness: () => {
     throw new Error('not available while emitting documents');
   },

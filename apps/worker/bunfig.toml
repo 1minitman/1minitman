@@ -1,0 +1,6 @@
+# Coverage floors (1MM-STD-01 section 4.1, DEC-004). Bun measures lines and functions and
+# applies the floor to every file; it does not measure branches (GAP-MOD00-16).
+[test]
+coverage = true
+coverageThreshold = { lines = 0.8, functions = 0.8 }
+coveragePathIgnorePatterns = ["../../packages/**"]

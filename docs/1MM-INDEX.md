@@ -107,7 +107,7 @@ Every derived document is named `1MM-<SERIES>-<NN>-<UPPER-KEBAB-TITLE>.md`.
 
 ## Architecture decision records (`docs/adrs/`)
 
-80 records, numbered 0001 to 0080. The list with status and date is in the [ADR index](adrs/1MM-ADR-0000-INDEX.md); new records start from the [template](adrs/1MM-ADR-0000-TEMPLATE.md).
+81 records, numbered 0001 to 0081. The list with status and date is in the [ADR index](adrs/1MM-ADR-0000-INDEX.md); new records start from the [template](adrs/1MM-ADR-0000-TEMPLATE.md).
 
 | Range        | Subject                                                                 |
 | ------------ | ----------------------------------------------------------------------- |

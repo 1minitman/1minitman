@@ -1,21 +1,31 @@
-import { createDatabase } from '@1minitman/db';
+import { assertAppEnv, createDatabase } from '@1minitman/db';
 import { PgBoss } from 'pg-boss';
 import { loadEnv } from './config/env';
-import { jobs } from './jobs';
-import type { JobContext } from './platform/job';
+import { jobs, pendingJobs } from './jobs';
+import { postgresCatalogue } from './platform/catalogue';
+import { postgresFailureNotifier } from './platform/failure-notifier';
+import { createLogger, errorLabel } from './platform/logger';
+import { createSentryReporter } from './platform/reporter';
 import { startRunner } from './platform/runner';
+import { createShutdown } from './platform/shutdown';
 
 const env = loadEnv();
-const log: JobContext['log'] = (message, fields) =>
-  console.log(
-    JSON.stringify({ time: new Date().toISOString(), service: 'worker', message, ...fields }),
-  );
+const logger = createLogger(env.LOG_LEVEL, { service: 'worker' });
+const reporter = createSentryReporter({
+  dsn: env.SENTRY_DSN_WORKER,
+  environment: env.APP_ENV,
+  release: env.APP_VERSION,
+});
 
 const database = createDatabase({
   url: env.WORKER_DATABASE_URL,
+  surface: 'worker',
+  appEnv: env.APP_ENV,
   max: 4,
   applicationName: 'worker',
 });
+// TRX-056: in production the worker login must carry app.env = 'production' as a role setting.
+await assertAppEnv(database);
 // pg-boss keeps its tables in its own `pgboss` schema, on its own connection and database role.
 // Job payloads are stored there in plain text: pass ids, never secrets or personal data.
 // The schema itself is created by `pnpm db:roles`; the queue role may not create schemas.
@@ -24,16 +34,26 @@ const boss = new PgBoss({
   application_name: 'worker-queue',
   createSchema: false,
 });
-boss.on('error', (error) => log('queue error', { error: error.message }));
+// The label only: a queue driver's message can quote a job payload or a query value.
+boss.on('error', (error) => logger.error('queue error', { error: errorLabel(error) }));
 
 await boss.start();
-await startRunner(boss, jobs, { database, log });
+await startRunner(boss, jobs, {
+  catalogue: postgresCatalogue(database),
+  pending: pendingJobs,
+  context: { database, logger },
+  reporter,
+  notifier: postgresFailureNotifier(database),
+});
 
-const shutdown = async (signal: string) => {
-  log('shutting down', { signal });
-  await boss.stop({ graceful: true, timeout: 20_000 });
-  await database.close();
-  process.exit(0);
-};
+const shutdown = createShutdown({
+  logger,
+  steps: [
+    () => boss.stop({ graceful: true, timeout: 20_000 }),
+    () => reporter.flush(2_000),
+    () => database.close(),
+  ],
+  exit: (code) => process.exit(code),
+});
 process.on('SIGINT', () => void shutdown('SIGINT'));
 process.on('SIGTERM', () => void shutdown('SIGTERM'));

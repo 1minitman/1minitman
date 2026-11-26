@@ -1,24 +1,50 @@
 import { describe, expect, test } from 'bun:test';
-import { createApp, type AppDeps } from './app';
+import { isProblemCode, SURFACE_NAMES } from '@1minitman/contracts';
+import { buildOpenApiDocument, createApp, type AppDeps } from './app';
 import { createCheckReadiness } from './modules/system';
+import { denyAllAuth } from './platform/auth';
+import { createMemoryIdempotencyStore } from './platform/idempotency';
 import { createLogger } from './platform/logger';
-import { createMemoryRateLimiter } from './platform/rate-limit';
+import {
+  createMemoryRateLimiter,
+  createPolicyStore,
+  staticPolicySource,
+} from './platform/rate-limit';
+import { createInMemoryRealtime } from './platform/realtime';
+import {
+  createMemoryWebhookStore,
+  createWebhookIntake,
+  pendingRowWebhookQueue,
+} from './platform/webhooks';
 
 const probe = (name: 'database' | 'redis', ok: boolean) => ({
   name,
   ping: () => (ok ? Promise.resolve() : Promise.reject(new Error('connection refused'))),
 });
 
-const build = (databaseUp = true) =>
-  createApp({
-    env: { APP_ENV: 'local', APP_VERSION: 'test', CORS_ALLOWED_ORIGINS: ['http://localhost:5173'] },
-    logger: createLogger('error'),
-    checkReadiness: createCheckReadiness({
-      database: probe('database', databaseUp),
-      redis: probe('redis', true),
+const deps = (databaseUp = true): AppDeps => ({
+  env: { APP_ENV: 'local', APP_VERSION: 'test', CORS_ALLOWED_ORIGINS: ['http://localhost:5173'] },
+  logger: createLogger('error'),
+  checkReadiness: createCheckReadiness({
+    database: probe('database', databaseUp),
+    redis: probe('redis', true),
+  }),
+  surfaces: {
+    rateLimits: {
+      policies: createPolicyStore(staticPolicySource([])),
+      limiter: createMemoryRateLimiter(),
+    },
+    auth: denyAllAuth(),
+    idempotency: createMemoryIdempotencyStore(),
+    realtime: createInMemoryRealtime(createLogger('error')),
+    webhooks: createWebhookIntake({
+      store: createMemoryWebhookStore(),
+      queue: pendingRowWebhookQueue,
+      logger: createLogger('error'),
     }),
-    surfaces: { rateLimiter: createMemoryRateLimiter() },
-  } satisfies AppDeps);
+  },
+});
+const build = (databaseUp = true) => createApp(deps(databaseUp));
 
 describe('system routes', () => {
   test('GET /health answers without touching dependencies', async () => {
@@ -43,7 +69,27 @@ describe('errors', () => {
     const res = await build().request('/v1/nope', { headers: { 'x-request-id': 'req_12345678' } });
     expect(res.status).toBe(404);
     expect(res.headers.get('content-type')).toContain('application/problem+json');
-    expect(await res.json()).toMatchObject({ status: 404, request_id: 'req_12345678' });
+    expect(await res.json()).toMatchObject({
+      type: 'tag:1minitman.com,2026:problem:not_found',
+      status: 404,
+      reason: 'not_found',
+      request_id: 'req_12345678',
+    });
+  });
+
+  test('every documented route answers only with registry codes', async () => {
+    const app = build(false);
+    for (const surface of SURFACE_NAMES) {
+      const doc = buildOpenApiDocument(deps(false), surface);
+      for (const path of Object.keys(doc.paths ?? {})) {
+        const res = await app.request(path, { headers: { authorization: 'Bearer not-a-token' } });
+        if (res.status < 400 || !res.headers.get('content-type')?.includes('problem+json'))
+          continue;
+        const body = (await res.json()) as { reason?: unknown; type?: unknown };
+        expect(isProblemCode(body.reason)).toBe(true);
+        expect(body.type).not.toBe('about:blank');
+      }
+    }
   });
 });
 

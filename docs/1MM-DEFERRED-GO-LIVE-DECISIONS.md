@@ -3,7 +3,7 @@
 |              |                                                                                                                                                                                                         |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Document** | 1MM-DEFERRED-GO-LIVE-DECISIONS                                                                                                                                                                          |
-| **Status**   | Running reminder list · started 26 Nov 2026 · v1.0                                                                                                                                                      |
+| **Status**   | Running reminder list · started 26 Nov 2026 · v1.1                                                                                                                                                      |
 | **Audience** | The owner and the engineering lead                                                                                                                                                                      |
 | **Owner**    | Engineering lead (code owners)                                                                                                                                                                          |
 | **Related**  | [1MM-LOG-04](1MM-LOG-04-OPEN-DECISIONS-AND-FOLLOW-UPS.md), [1MM-LOG-03](1MM-LOG-03-TECHNICAL-REFERENCE-EXTENSIONS.md), [1MM-PLANNER](1MM-PLANNER.md), [1MM-EXE-00](execution/1MM-EXE-00-MASTER-PLAN.md) |
@@ -57,12 +57,12 @@ interim default is named, the build uses it and the entry stays open.
 
 Nothing is seeded with a guess; code defaults apply until each value arrives.
 
-| Item    | What is needed                                                                           | Needed by               |
-| ------- | ---------------------------------------------------------------------------------------- | ----------------------- |
-| DEC-051 | The person responsible for Lagos usability round 1 (method decided: stage 40 build, A35) | MOD-19 exit gate        |
-| TRX-069 | Profile-strength weights per profile element (`profile.strength_weights`)                | MOD-04                  |
-| TRX-071 | Values of `discovery.distance_steps_km`                                                  | MOD-07                  |
-| TRX-101 | The unsourced limits and values listed in the extension, supplied as each module asks    | Each module's API stage |
+| Item        | What is needed                                                                                                  | Needed by               |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| ~~DEC-051~~ | ~~The person responsible for Lagos usability round 1 (method decided: stage 40 build, A35)~~ Closed 26 Nov 2026 | MOD-19 exit gate        |
+| ~~TRX-069~~ | ~~Profile-strength weights per profile element (`profile.strength_weights`)~~ Closed 26 Nov 2026                | MOD-04                  |
+| TRX-071     | Values of `discovery.distance_steps_km`                                                                         | MOD-07                  |
+| TRX-101     | The unsourced limits and values listed in the extension, supplied as each module asks                           | Each module's API stage |
 
 ## 5. Spending to approve or action
 
@@ -88,4 +88,5 @@ by the owner or the engineering lead.
 
 | Version | Date        | Change                                                                                  |
 | ------- | ----------- | --------------------------------------------------------------------------------------- |
+| v1.1    | 26 Nov 2026 | DEC-051 (State Manager) and TRX-069 (weights by industry practice) closed.              |
 | v1.0    | 26 Nov 2026 | First version: DEC-027 and DEC-045 deferred; every item still owed by the owner listed. |

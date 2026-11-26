@@ -35,3 +35,25 @@ export const featureFlags = pgTable('feature_flags', {
   updatedBy: uuid('updated_by'),
   updatedAt: timestamp('updated_at', TIMESTAMPTZ).notNull().defaultNow(),
 });
+
+/**
+ * Rate-limit policies [TR §13.3]: 15 seeded rows, loaded by the API at start and on change.
+ * Production changes need an approved `security.rate_limits` approval (enforce_config_approval).
+ */
+export const rateLimitPolicies = pgTable('rate_limit_policies', {
+  key: text().primaryKey(),
+  scope: text().$type<'ip' | 'device' | 'account' | 'phone' | 'email' | 'account_ip'>().notNull(),
+  maxRequests: integer('max_requests').notNull(),
+  windowSeconds: integer('window_seconds').notNull(),
+  lockoutSeconds: integer('lockout_seconds'),
+  algorithm: text()
+    .$type<'sliding_window' | 'token_bucket' | 'fixed_window'>()
+    .notNull()
+    .default('sliding_window'),
+  appliesTo: text('applies_to').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  description: text().notNull(),
+  approvalId: uuid('approval_id'),
+  updatedBy: uuid('updated_by'),
+  updatedAt: timestamp('updated_at', TIMESTAMPTZ).notNull().defaultNow(),
+});
