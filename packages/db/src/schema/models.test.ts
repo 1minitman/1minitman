@@ -6,7 +6,7 @@ import { type Tx, withAdminTx } from '../transactions';
 import { featureFlags, remoteConfig } from './index';
 
 // Each Drizzle model reads and writes its table on PostgreSQL 16 [1MM-STD-01 §3.3 Models], and a
-// versioned update holds under parallel connections [1MM-STD-01 §2, If-Match update] [TR §17.3].
+// versioned update holds under parallel connections [1MM-STD-01 §3.1, If-Match update] [TR §17.3].
 // The admin login is used with app.env = staging, where config writes need no approval [SQL].
 // Every row is synthetic: written in a transaction that is rolled back, or deleted afterwards.
 const url = process.env.ADMIN_DATABASE_URL;

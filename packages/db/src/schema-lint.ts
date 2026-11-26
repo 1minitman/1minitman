@@ -61,11 +61,17 @@ export const normaliseType = (type: string): string => {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, ' ')
-    .replace(/\s*([(),[\]])\s*/g, '$1');
+    .replace(/\s*([(,[\]])\s*/g, '$1')
+    // Keep the space after `)`: `timestamp(3) with time zone`.
+    .replace(/\s+\)/g, ')');
   const match = /^([a-z_][a-z0-9_ ]*?)((?:\(.*\))?)((?:\[\])*)$/.exec(compact);
   if (!match) return compact;
   const [, name = '', modifier = '', array = ''] = match;
-  return `${ALIASES[name] ?? name}${modifier}${array}`;
+  const expanded = ALIASES[name] ?? name;
+  // PostgreSQL prints a time precision before the zone: `timestamp(3) without time zone`.
+  const zoned = /^(timestamp|time) (with(?:out)? time zone)$/.exec(expanded);
+  if (zoned && modifier) return `${zoned[1]}${modifier} ${zoned[2]}${array}`;
+  return `${expanded}${modifier}${array}`;
 };
 
 const withoutModifier = (type: string) => type.replace(/\(.*\)/, '');

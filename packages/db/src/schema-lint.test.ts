@@ -65,6 +65,20 @@ describe('type names are compared the way PostgreSQL prints them', () => {
     expect(normaliseType('timestamp with time zone')).toBe('timestamp with time zone');
   });
 
+  test('a time precision sits before the zone, as format_type() prints it', () => {
+    expect(normaliseType('timestamp (3)')).toBe('timestamp(3) without time zone');
+    expect(normaliseType('time(6)')).toBe('time(6) without time zone');
+    expect(normaliseType('timestamp (3) with time zone')).toBe('timestamp(3) with time zone');
+    expect(typeMatches('timestamp (3)', col('timestamp(3) without time zone'))).toBe(true);
+    expect(typeMatches('timestamp', col('timestamp(3) without time zone'))).toBe(true);
+    expect(typeMatches('timestamp (6)', col('timestamp(3) without time zone'))).toBe(false);
+    expect(typeMatches('timestamp with time zone', col('timestamp(3) with time zone'))).toBe(true);
+    expect(typeMatches('timestamp', col('timestamp(3) with time zone'))).toBe(false);
+    const model = pgTable('people', { seenAt: timestamp('seen_at', { precision: 3 }) });
+    const db = catalogue({ 'public.people': { seen_at: col('timestamp(3) without time zone') } });
+    expect(lintModels([model], db)).toEqual([]);
+  });
+
   test('a model type without a modifier matches the database type with one', () => {
     expect(typeMatches('numeric', col('numeric(10,2)'))).toBe(true);
     expect(typeMatches('numeric(10, 2)', col('numeric(10,2)'))).toBe(true);
