@@ -10,6 +10,7 @@ import {
   createPolicyStore,
   staticPolicySource,
 } from './platform/rate-limit';
+import { createInMemoryRealtime } from './platform/realtime';
 
 const probe = (name: 'database' | 'redis', ok: boolean) => ({
   name,
@@ -30,6 +31,7 @@ const deps = (databaseUp = true): AppDeps => ({
     },
     auth: denyAllAuth(),
     idempotency: createMemoryIdempotencyStore(),
+    realtime: createInMemoryRealtime(createLogger('error')),
   },
 });
 const build = (databaseUp = true) => createApp(deps(databaseUp));

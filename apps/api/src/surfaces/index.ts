@@ -3,6 +3,7 @@ import type { AdminGuards, MemberGuards } from '../platform/auth';
 import { createRouter, type Router } from '../platform/http/router';
 import type { IdempotencyStore } from '../platform/idempotency';
 import type { RateLimits } from '../platform/rate-limit';
+import type { AdminStreamHub, WebSocketGateway } from '../platform/realtime';
 
 /**
  * One router per API surface. A feature module adds its routes to the surface it serves:
@@ -34,6 +35,14 @@ export interface SurfaceDeps {
    * use `requireIfMatch()` and `settleConditionalWrite()` (platform/concurrency).
    */
   idempotency: IdempotencyStore;
+  /**
+   * Realtime (MOD-00-API-07). `gateway.register()` adds a client-to-server WebSocket event;
+   * `gateway.publishToUser()` / `gateway.publish(conversationChannel(id), ...)` announce a change
+   * after its transaction commits (PostgreSQL first, then pub/sub, [TR §4.2]).
+   * `adminStream.stream(c, currentAdmin(c))` serves `GET /admin/v1/stream` (MOD-01);
+   * `adminStream.publishToAdmin()` / `publishToAll()` raise admin events.
+   */
+  realtime: { gateway: WebSocketGateway; adminStream: AdminStreamHub };
 }
 
 const builders: Record<SurfaceName, (router: Router, deps: SurfaceDeps) => Router> = {

@@ -6,5 +6,6 @@ export * from './schemas/system';
 export * from './schemas/primitives';
 export * from './schemas/headers';
 export * from './schemas/text';
+export * from './schemas/realtime';
 export * from './errors/registry';
 export * from './errors/field-errors';

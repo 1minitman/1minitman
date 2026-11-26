@@ -10,6 +10,7 @@ import {
   createPolicyStore,
   staticPolicySource,
 } from '../platform/rate-limit';
+import { createInMemoryRealtime } from '../platform/realtime';
 
 // Writes one OpenAPI document per surface into packages/contracts/openapi/.
 // Needs no database or Redis: documents are built from route definitions alone.
@@ -27,6 +28,7 @@ const deps: AppDeps = {
     },
     auth: denyAllAuth(),
     idempotency: createMemoryIdempotencyStore(),
+    realtime: createInMemoryRealtime(createLogger('error')),
   },
   checkReadiness: () => {
     throw new Error('not available while emitting documents');
