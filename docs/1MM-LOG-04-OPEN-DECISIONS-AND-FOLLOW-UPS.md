@@ -1119,7 +1119,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-WRK-01` (MOD-00 observability)
 - **Size:** small
 - **Gaps:** GAP-STD14-04
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-WRK-01`): `apps/worker/src/platform/logger.ts` copies the API's logger; `JobContext.logger` replaces `log`, and `LOG_LEVEL` applies
 
 **REP-038** · Job payload schemas in the worker
 
@@ -1129,7 +1129,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-WRK-01`; first needed by the first job with a payload (MOD-03)
 - **Size:** small
 - **Gaps:** GAP-STD16-01
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-WRK-01`): `JobDefinition.payload` (zod); the runner parses before `handle` and a parse error fails the job at once (`deadletter`, no retry) and raises `job.failed`
 
 #### Mobile app
 

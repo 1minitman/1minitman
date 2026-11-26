@@ -267,7 +267,7 @@ branches, enforced per workspace so a well-tested package cannot hide an unteste
 
 Coverage is a floor, not a goal: the three conditions of section 1 and the rule-by-rule tests of
 the API gate decide whether a change is tested. `packages/contracts`, `packages/i18n` and
-`apps/api` have their `bunfig.toml` since `MOD-00-API-01`; Bun measures lines and functions per
+`apps/api` have their `bunfig.toml` since `MOD-00-API-01`, and `apps/worker` since `MOD-00-WRK-01`; Bun measures lines and functions per
 file, not branches (GAP-MOD00-16). The other files do not exist yet (GAP-STD01-01 to
 GAP-STD01-03). Floors start at the current measured value if it is lower when the tooling lands,
 and rise to the table by MOD-19.

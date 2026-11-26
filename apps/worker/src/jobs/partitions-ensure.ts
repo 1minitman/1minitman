@@ -18,12 +18,12 @@ const MONTHS_AHEAD = 3;
 /** `partitions.ensure`: create the next three monthly partitions of every partitioned table. */
 export const partitionsEnsure = defineJob({
   name: 'partitions.ensure',
-  cron: '0 3 1 * *', // 03:00 UTC on the 1st of each month
-  async handle(_payload, { database, log }) {
+  // Schedule: `worker_jobs.cron` ('0 3 1 * *', 03:00 UTC on the 1st of each month, TRX-049).
+  async handle(_payload, { database, logger }) {
     for (const table of PARTITIONED_TABLES) {
       const [row] = await database.sql<{ made: number }[]>`
         SELECT ensure_monthly_partitions(${table}, current_date, ${MONTHS_AHEAD}) AS made`;
-      log('partitions ensured', { table, created: row?.made ?? 0 });
+      logger.info('partitions ensured', { table, created: row?.made ?? 0 });
     }
   },
 });
