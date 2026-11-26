@@ -38,6 +38,7 @@ export {
 } from './sse-hub';
 export type {
   AdminChannelMessage,
+  AdminAllEventInput,
   AdminEventInput,
   AdminStreamFilter,
   AdminStreamHub,

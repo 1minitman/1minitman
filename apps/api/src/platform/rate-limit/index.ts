@@ -1,4 +1,11 @@
-export { checkRateLimit, clientIp, rateLimit, rateLimitKeys, resolveSubject } from './middleware';
+export {
+  checkRateLimit,
+  clientIp,
+  normaliseIdentity,
+  rateLimit,
+  rateLimitKeys,
+  resolveSubject,
+} from './middleware';
 export type { RateLimitCheck, RateLimitOptions, RateLimits } from './middleware';
 export { createPolicyStore, failsClosed, staticPolicySource } from './policies';
 export type { PolicySource, PolicyStore, RateLimitPolicy, RateLimitScope } from './policies';
