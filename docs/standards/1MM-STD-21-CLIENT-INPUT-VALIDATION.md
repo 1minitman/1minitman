@@ -238,6 +238,7 @@ Dispositions are recorded in [1MM-LOG-03](../1MM-LOG-03-TECHNICAL-REFERENCE-EXTE
 
 ## Change log
 
-| Version | Date        | Change                                                    |
-| ------- | ----------- | --------------------------------------------------------- |
-| v1.0    | 25 Nov 2026 | First issue, proposed with 1MM-ADR-0080 (awaiting owner). |
+| Version | Date        | Change                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.0    | 25 Nov 2026 | First issue, proposed with 1MM-ADR-0080 (awaiting owner).                                                                                                                                                                                                                                                                                                                                                               |
+| v1.1    | 26 Nov 2026 | `MOD-00-API-01`: `boundedText()`, `codePointLength()` and the normalisers of §4 (steps 1 to 5, and the first half of step 6) are in `packages/contracts/src/schemas/text.ts`, and field codes are attached to zod issues (GAP-STD21-01 closed; parsing a national phone number with a default country lands with the first phone form). `error.field.*` messages use `{label}`, `{min}`, `{max}` (GAP-STD21-04 closed). |

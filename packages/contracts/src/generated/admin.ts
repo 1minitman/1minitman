@@ -30,6 +30,15 @@ export interface paths {
                         "application/json": components["schemas"]["Health"];
                     };
                 };
+                /** @description `internal`: Internal error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
             };
         };
         put?: never;
@@ -66,6 +75,15 @@ export interface paths {
                         "application/json": components["schemas"]["Readiness"];
                     };
                 };
+                /** @description `internal`: Internal error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
                 /** @description At least one dependency is down. */
                 503: {
                     headers: {
@@ -97,6 +115,30 @@ export interface components {
             /** @enum {string} */
             environment: "local" | "dev" | "demo" | "staging" | "production";
             time: string;
+        };
+        Problem: {
+            type: string;
+            title: string;
+            status: number;
+            detail?: string;
+            instance: string;
+            request_id: string;
+            reason: string;
+            errors?: {
+                path: string;
+                /** @enum {string} */
+                code: "required" | "invalid_format" | "too_short" | "too_long" | "out_of_range" | "contact_details" | "reserved" | "breached" | "disposable_email" | "voip_blocked" | "not_allowed" | "self";
+                message: string;
+            }[];
+            entitlement?: string;
+            upsell?: string;
+            permission?: string;
+            retry_after_seconds?: number;
+            /** Format: date-time */
+            until?: string;
+            tries_left?: number;
+            limit?: number;
+            used?: number;
         };
         Readiness: {
             /** @enum {string} */

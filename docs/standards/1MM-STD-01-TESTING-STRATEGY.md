@@ -266,7 +266,9 @@ branches, enforced per workspace so a well-tested package cannot hide an unteste
 | `apps/site`                                                        | none; covered by Playwright templates | n/a                                                 |
 
 Coverage is a floor, not a goal: the three conditions of section 1 and the rule-by-rule tests of
-the API gate decide whether a change is tested. None of these files exists yet (GAP-STD01-01 to
+the API gate decide whether a change is tested. `packages/contracts`, `packages/i18n` and
+`apps/api` have their `bunfig.toml` since `MOD-00-API-01`; Bun measures lines and functions per
+file, not branches (GAP-MOD00-16). The other files do not exist yet (GAP-STD01-01 to
 GAP-STD01-03). Floors start at the current measured value if it is lower when the tooling lands,
 and rise to the table by MOD-19.
 
@@ -444,7 +446,8 @@ follow-ups).
 
 ## Change log
 
-| Version | Date        | Change                                                                                                                        |
-| ------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| v1.0    | 24 Nov 2026 | First issue: three conditions, per-app strategy, thresholds and their locations, test data rules, run matrix, exit-gate usage |
-| v1.1    | 26 Nov 2026 | `MOD-00-DB-02`: database tests fail in CI instead of skipping (GAP-STD01-09 closed); schema lint and model tests listed       |
+| Version | Date        | Change                                                                                                                                                                                                                |
+| ------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.0    | 24 Nov 2026 | First issue: three conditions, per-app strategy, thresholds and their locations, test data rules, run matrix, exit-gate usage                                                                                         |
+| v1.1    | 26 Nov 2026 | `MOD-00-DB-02`: database tests fail in CI instead of skipping (GAP-STD01-09 closed); schema lint and model tests listed                                                                                               |
+| v1.2    | 26 Nov 2026 | `MOD-00-API-01`: coverage floors enforced for `packages/contracts`, `packages/i18n` (90%) and `apps/api` (80%) on lines and functions; `test` scripts added to contracts and i18n (GAP-MOD00-16 raised for branches). |

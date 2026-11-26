@@ -22,7 +22,7 @@ This is the list of every architecture decision record. Open it to find the deci
 
 ## Adding an ADR
 
-1. Copy the [template](1MM-ADR-0000-TEMPLATE.md) to `1MM-ADR-<next number>-<UPPER-KEBAB-TITLE>.md`. The next free number is **0081**.
+1. Copy the [template](1MM-ADR-0000-TEMPLATE.md) to `1MM-ADR-<next number>-<UPPER-KEBAB-TITLE>.md`. The next free number is **0082**.
 2. Record the decision first in the Technical Reference extensions log when it extends the Technical Reference ([1MM-LOG-03](../1MM-LOG-03-TECHNICAL-REFERENCE-EXTENSIONS.md)).
 3. Add its row to this index in the same pull request. Never renumber or delete an ADR: supersede it.
 
@@ -125,10 +125,12 @@ This is the list of every architecture decision record. Open it to find the deci
 | No.                                                      | Decision                                                                        | Status   | Decided                | Decided by                                                                           |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------- | -------- | ---------------------- | ------------------------------------------------------------------------------------ |
 | [0080](1MM-ADR-0080-CLIENT-INPUT-VALIDATION-STRATEGY.md) | Client input validation: shared schemas, config-driven limits, server authority | Proposed | 25 Nov 2026 (proposed) | Engineering recommendation in 1MM-STD-21, at the owner's request; awaiting the owner |
+| [0081](1MM-ADR-0081-OPENAPI-OPERATION-DECLARATIONS.md)   | OpenAPI operation declarations: auth, rate-limit policy and problem codes       | Proposed | 26 Nov 2026 (proposed) | Engineering recommendation made while building `MOD-00-API-01`; awaiting the owner   |
 
 ## Change log
 
-| Version | Date        | Change                                  |
-| ------- | ----------- | --------------------------------------- |
-| v1.0    | 24 Nov 2026 | First index: 79 records (0001 to 0079). |
-| v1.1    | 25 Nov 2026 | 0080 added (client input validation).   |
+| Version | Date        | Change                                       |
+| ------- | ----------- | -------------------------------------------- |
+| v1.0    | 24 Nov 2026 | First index: 79 records (0001 to 0079).      |
+| v1.1    | 25 Nov 2026 | 0080 added (client input validation).        |
+| v1.2    | 26 Nov 2026 | 0081 added (OpenAPI operation declarations). |

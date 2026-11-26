@@ -49,9 +49,7 @@ export const rateLimit = (limiter: RateLimiter, policy: RateLimitPolicy) =>
     c.header('RateLimit-Limit', String(policy.limit));
     c.header('RateLimit-Remaining', String(decision.remaining));
     if (!decision.allowed) {
-      c.header('Retry-After', String(decision.retryAfterSeconds));
-      return problemResponse(c, 429, 'Too many requests', {
-        reason: 'rate_limited',
+      return problemResponse(c, 'rate_limited', {
         retry_after_seconds: decision.retryAfterSeconds,
       });
     }

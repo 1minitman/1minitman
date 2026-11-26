@@ -43,6 +43,108 @@
           "time"
         ]
       },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{2,48}$"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string",
+                  "enum": [
+                    "required",
+                    "invalid_format",
+                    "too_short",
+                    "too_long",
+                    "out_of_range",
+                    "contact_details",
+                    "reserved",
+                    "breached",
+                    "disposable_email",
+                    "voip_blocked",
+                    "not_allowed",
+                    "self"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "code",
+                "message"
+              ]
+            }
+          },
+          "entitlement": {
+            "type": "string"
+          },
+          "upsell": {
+            "type": "string"
+          },
+          "permission": {
+            "type": "string"
+          },
+          "retry_after_seconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tries_left": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "used": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "instance",
+          "request_id",
+          "reason"
+        ]
+      },
       "Readiness": {
         "type": "object",
         "properties": {
@@ -120,6 +222,8 @@
           "System"
         ],
         "summary": "Liveness probe",
+        "security": [],
+        "x-rate-limit-policy": null,
         "responses": {
           "200": {
             "description": "The service is running.",
@@ -127,6 +231,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "`internal`: Internal error",
+            "x-problem-codes": [
+              "internal"
+            ],
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             }
@@ -140,6 +257,8 @@
           "System"
         ],
         "summary": "Readiness probe (database and Redis)",
+        "security": [],
+        "x-rate-limit-policy": null,
         "responses": {
           "200": {
             "description": "Every dependency is reachable.",
@@ -147,6 +266,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "`internal`: Internal error",
+            "x-problem-codes": [
+              "internal"
+            ],
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             }

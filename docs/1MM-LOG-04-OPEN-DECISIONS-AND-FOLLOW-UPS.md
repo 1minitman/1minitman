@@ -873,7 +873,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-API-01`
 - **Size:** small
 - **Gaps:** GAP-STD01-03, GAP-STD06-03
-- **Status:** Open
+- **Status:** Open, in part done (26 Nov 2026, `MOD-00-API-01`): `test` scripts and the enumeration tests are in `packages/contracts` and `packages/i18n`; coverage floors are enforced per workspace in `bunfig.toml` for `packages/contracts`, `packages/i18n` and `apps/api` (lines and functions; branches are GAP-MOD00-16). The other Bun workspaces get theirs with their own tasks
 
 **REP-014** · Playwright and axe for admin, web and site
 
@@ -1047,7 +1047,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-API-01`
 - **Size:** medium
 - **Gaps:** GAP-STD13-02, GAP-STD14-01
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-API-01`): registry and extension members in `packages/contracts`; `ProblemError(code)` in `apps/api/src/platform/errors.ts`; `not_found`, `internal` and field codes sent
 
 **REP-031** · `error.*` message keys and their enumeration test
 
@@ -1057,7 +1057,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-API-01`; later codes arrive with their routes
 - **Size:** small
 - **Gaps:** GAP-STD13-03
-- **Status:** Open
+- **Status:** Done (26 Nov 2026, `MOD-00-API-01`): `error.<code>` for §4.1 and §4.2, `error.field.<code>` for §4.3, and the catalogue test in `packages/contracts/src/messages.test.ts`
 
 **REP-032** · One key pattern for i18n keys (lower snake)
 

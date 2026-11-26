@@ -11,7 +11,8 @@
   },
   "scripts": {
     "generate": "node scripts/generate.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0",
@@ -27,6 +28,8 @@
   },
   "devDependencies": {
     "@hono/zod-openapi": "catalog:",
+    "@types/bun": "catalog:",
+    "bun": "catalog:",
     "hono": "catalog:",
     "openapi-typescript": "^7.13.0",
     "typescript": "catalog:"
