@@ -153,6 +153,29 @@ guarded route answers 401:
 The first refusal ends the request and later checks never run. A member token is never read on
 `/admin/v1`, and the admin cookie is never read on `/v1`.
 
+#### Writes, lists and versions
+
+Three platform helpers cover rules 6 to 8 of the MOD-00 plan (§4.3):
+
+- **`Idempotency-Key`**: `idempotent(deps.idempotency)` per write route, after the auth guard.
+  The first request runs the handler and its response is kept in Redis
+  `idem:{METHOD route}:{key}` for 24 h; the same key and body replays it without running the
+  handler; another body is 409 `idempotency_key_reused`; a replay while the first runs is 409
+  `idempotency_in_progress`; no key or a key that is not a UUID is 400
+  `idempotency_key_required` (`{ required: false }` makes the header optional). 5xx and
+  problems the client answers by resending (`auth`, `backoff`, `fix`, `refresh`) free the key.
+  If Redis does not answer within 100 ms the request is 503 and the handler does not run.
+- **Lists**: `listQuerySchema([...sorts], default)` from `@1minitman/contracts` for the query
+  (`limit` 25, 50 or 100; unknown `sort` is 422), and `defineKeysetList({ list, sorts, id })` from
+  `platform/pagination` for the query parts and the response (`next_cursor`, `prev_cursor`,
+  `has_more`). Each sort is a NOT NULL, indexed column; the cursor is checked against the list and
+  sort that issued it, and a bad one is 422 on `cursor`. Never OFFSET.
+- **`If-Match`**: send `setETag(c, token)` on reads (token from `versionToken()` in
+  `@1minitman/db`), put `requireIfMatch()` on the write (428 without it), write with
+  `updateIfMatch(tx, …)` and answer with `settleConditionalWrite(c, result)`: a stale tag is 412
+  and changes nothing, a missing row is 404. The version is the row's `version` column where it
+  has one, otherwise `updated_at` in whole microseconds.
+
 ### A database change
 
 1. Add the next numbered file in `packages/db/migrations/` (the next unused number: one above the

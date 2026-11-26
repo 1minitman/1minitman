@@ -1,6 +1,7 @@
 import { SURFACES, WEBHOOKS_BASE_PATH, type SurfaceName } from '@1minitman/contracts';
 import type { AdminGuards, MemberGuards } from '../platform/auth';
 import { createRouter, type Router } from '../platform/http/router';
+import type { IdempotencyStore } from '../platform/idempotency';
 import type { RateLimits } from '../platform/rate-limit';
 
 /**
@@ -26,6 +27,13 @@ export interface SurfaceDeps {
    * sign-in routes on both surfaces stay open.
    */
   auth: { member: MemberGuards; admin: AdminGuards };
+  /**
+   * Store for `Idempotency-Key` replays. Attach `idempotent(deps.idempotency)` per write route,
+   * after the auth guard: required on payments, badge submit, exports, every admin write and every
+   * website form (TRX-012). Lists use `defineKeysetList()` (platform/pagination); versioned writes
+   * use `requireIfMatch()` and `settleConditionalWrite()` (platform/concurrency).
+   */
+  idempotency: IdempotencyStore;
 }
 
 const builders: Record<SurfaceName, (router: Router, deps: SurfaceDeps) => Router> = {

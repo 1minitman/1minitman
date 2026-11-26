@@ -10,6 +10,7 @@ import {
   denyAllAdminAuthPorts,
   denyAllMemberAuthPorts,
 } from './platform/auth';
+import { createRedisIdempotencyStore } from './platform/idempotency';
 import { createLogger } from './platform/logger';
 import {
   createPolicyStore,
@@ -63,6 +64,7 @@ const app = createApp({
       }),
       admin: createAdminGuards(denyAllAdminAuthPorts()),
     },
+    idempotency: createRedisIdempotencyStore(redis),
   },
 });
 

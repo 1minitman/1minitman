@@ -9,5 +9,7 @@ export interface AppVariables {
   member?: MemberPrincipal;
   /** Set by `requireAdmin()`; read it with `currentAdmin(c)`. */
   admin?: AdminPrincipal;
+  /** Set by `requireIfMatch()`: the entity tag of `If-Match`; read it with `expectedVersion(c)`. */
+  ifMatch?: string;
 }
 export type AppEnv = { Variables: AppVariables };

@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildOpenApiDocument, type AppDeps } from '../app';
 import { denyAllAuth } from '../platform/auth';
+import { createMemoryIdempotencyStore } from '../platform/idempotency';
 import { createLogger } from '../platform/logger';
 import {
   createMemoryRateLimiter,
@@ -25,6 +26,7 @@ const deps: AppDeps = {
       limiter: createMemoryRateLimiter(),
     },
     auth: denyAllAuth(),
+    idempotency: createMemoryIdempotencyStore(),
   },
   checkReadiness: () => {
     throw new Error('not available while emitting documents');

@@ -3,6 +3,7 @@ import { isProblemCode, SURFACE_NAMES } from '@1minitman/contracts';
 import { buildOpenApiDocument, createApp, type AppDeps } from './app';
 import { createCheckReadiness } from './modules/system';
 import { denyAllAuth } from './platform/auth';
+import { createMemoryIdempotencyStore } from './platform/idempotency';
 import { createLogger } from './platform/logger';
 import {
   createMemoryRateLimiter,
@@ -28,6 +29,7 @@ const deps = (databaseUp = true): AppDeps => ({
       limiter: createMemoryRateLimiter(),
     },
     auth: denyAllAuth(),
+    idempotency: createMemoryIdempotencyStore(),
   },
 });
 const build = (databaseUp = true) => createApp(deps(databaseUp));
