@@ -14,6 +14,8 @@ export const RATE_LIMITER_TIMEOUT_MS = 100;
 // sees the same count and two requests can never both take the last slot. Time comes from the
 // Redis server (TIME), not from the instance, so clock skew between instances changes nothing.
 // A counter left in another algorithm's shape (the policy was edited) is dropped and restarted.
+// A sliding-window refusal retries when the hit `limit` places from the newest leaves the window
+// (not the oldest: after the limit was lowered the set holds more hits than the limit).
 // Replies: {1, remaining, 0} allowed; {0, 0, retry_ms} limited; {2, 0, retry_ms} locked.
 const SCRIPT = `
 local ck, lk = KEYS[1], KEYS[2]
@@ -35,8 +37,8 @@ if alg == 'sliding_window' then
     redis.call('PEXPIRE', ck, window)
     return {1, limit - count - 1, 0}
   end
-  local oldest = redis.call('ZRANGE', ck, 0, 0, 'WITHSCORES')
-  retry = tonumber(oldest[2]) + window - now
+  local frees = redis.call('ZRANGE', ck, count - limit, count - limit, 'WITHSCORES')
+  retry = tonumber(frees[2]) + window - now
 elseif alg == 'fixed_window' then
   local start = math.floor(now / window) * window
   local count = 0

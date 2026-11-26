@@ -87,7 +87,10 @@ export const createMemoryRateLimiter = (now: () => number = Date.now): RateLimit
         recent.push(current);
         return { ok: true, remaining: limit - recent.length };
       }
-      return { ok: false, retryMs: (recent[0] ?? current) + windowMs - current };
+      // A slot frees when the hit `limit` places from the newest leaves the window. After the
+      // limit was lowered there are more hits than the limit, so this is not the oldest one.
+      const freesAt = recent[recent.length - limit] ?? current;
+      return { ok: false, retryMs: freesAt + windowMs - current };
     }
     if (algorithm === 'fixed_window') {
       const start = Math.floor(current / windowMs) * windowMs;

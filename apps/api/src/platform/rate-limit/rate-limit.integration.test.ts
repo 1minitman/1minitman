@@ -225,6 +225,29 @@ describe.skipIf(!ready)('Redis rate limiter', () => {
     await cleanup(keys);
   });
 
+  test('sliding_window: after the limit is lowered, the retry time follows the newest hits', async () => {
+    const limiter = createRedisRateLimiter(redis!);
+    const keys = freshKeys();
+    const now = Date.now();
+    // Three hits already in the window: 50 min, 40 min and 1 min ago (window 1 hour).
+    await redis!.send('ZADD', [
+      keys.counter,
+      String(now - 3_000_000),
+      'a',
+      String(now - 2_400_000),
+      'b',
+      String(now - 60_000),
+      'c',
+    ]);
+    await redis!.send('PEXPIRE', [keys.counter, '3600000']);
+    // Limit lowered to 1: a slot frees when the hit of 1 min ago leaves, about 59 min from now.
+    const decision = await limiter.consume(keys, rule({ limit: 1, windowSeconds: 3600 }));
+    expect(decision.outcome).toBe('limited');
+    expect(decision.retryAfterSeconds).toBeGreaterThan(3_500);
+    expect(decision.retryAfterSeconds).toBeLessThanOrEqual(3_541);
+    await cleanup(keys);
+  });
+
   test('changing the algorithm on a live key restarts the count instead of failing', async () => {
     const limiter = createRedisRateLimiter(redis!);
     const keys = freshKeys();

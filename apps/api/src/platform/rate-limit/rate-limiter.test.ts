@@ -53,6 +53,24 @@ describe('memory limiter, algorithm details', () => {
     expect((await limiter.consume(keys, rule({ limit: 2 }))).outcome).toBe('allowed');
   });
 
+  test('sliding window: after the limit is lowered, the retry time is when the count drops under it', async () => {
+    const time = clock();
+    const limiter = createMemoryRateLimiter(time.now);
+    for (let i = 0; i < 3; i++) {
+      await limiter.consume(keys, rule());
+      time.advance(1_000);
+    }
+    // Hits at 0 s, 1 s and 2 s; at 3 s the limit becomes 1: the hit at 2 s must leave first.
+    expect(await limiter.consume(keys, rule({ limit: 1 }))).toMatchObject({
+      outcome: 'limited',
+      retryAfterSeconds: 9,
+    });
+    time.advance(8_999);
+    expect((await limiter.consume(keys, rule({ limit: 1 }))).outcome).toBe('limited');
+    time.advance(2);
+    expect((await limiter.consume(keys, rule({ limit: 1 }))).outcome).toBe('allowed');
+  });
+
   test('fixed window: the count resets at the window boundary, not a window after the first hit', async () => {
     const time = clock(9_000);
     const limiter = createMemoryRateLimiter(time.now);
