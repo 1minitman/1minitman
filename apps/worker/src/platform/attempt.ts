@@ -53,7 +53,8 @@ const raiseFailure = async (deps: AttemptDeps, tags: FailureTags, reason: JobFai
  * Runs one attempt of a job under the catalogue's rules (MOD-00 plan section 4.2):
  * 1. only when `worker_jobs.is_active` is true (checked when the attempt starts);
  * 2. a malformed payload fails at once, without retry (REP-038);
- * 3. a thrown error is logged, sent to Sentry and retried with backoff by the queue;
+ * 3. a thrown error is logged, sent to Sentry and retried with backoff by the queue; a failed
+ *    catalogue read counts as a failed attempt in the same way;
  * 4. the attempt that exhausts the retries raises the `job.failed` console notification.
  */
 export const runAttempt = async (
@@ -65,7 +66,27 @@ export const runAttempt = async (
   const fields = { job: job.name, id: attempt.id, attempt: attempt.retryCount };
   const tags: FailureTags = { job: job.name, job_id: attempt.id, attempt: attempt.retryCount };
 
-  const row = await deps.catalogue.get(job.name);
+  /** Rule 3 and 4: log, report, then retry or, on the last attempt, notify. */
+  const fail = async (error: unknown, stage: 'catalogue' | 'handler'): Promise<AttemptOutcome> => {
+    const exhausted = attempt.retryCount >= attempt.retryLimit;
+    logger.error(exhausted ? 'job failed: retries exhausted' : 'job failed: will retry', {
+      ...fields,
+      stage,
+      retry_limit: attempt.retryLimit,
+      error: errorLabel(error),
+    });
+    deps.reporter.capture(error, tags);
+    if (!exhausted) return { status: 'failed', outcome: 'retry' };
+    await raiseFailure(deps, tags, 'retries_exhausted');
+    return { status: 'failed', outcome: 'exhausted' };
+  };
+
+  let row: Awaited<ReturnType<AttemptDeps['catalogue']['get']>>;
+  try {
+    row = await deps.catalogue.get(job.name);
+  } catch (error) {
+    return fail(error, 'catalogue');
+  }
   if (!row?.isActive) {
     logger.info('job skipped: not active in the catalogue', fields);
     return { status: 'completed', outcome: 'skipped_inactive' };
@@ -90,16 +111,7 @@ export const runAttempt = async (
   try {
     await job.handle(payload, { ...deps.context, signal: attempt.signal });
   } catch (error) {
-    const exhausted = attempt.retryCount >= attempt.retryLimit;
-    logger.error(exhausted ? 'job failed: retries exhausted' : 'job failed: will retry', {
-      ...fields,
-      retry_limit: attempt.retryLimit,
-      error: errorLabel(error),
-    });
-    deps.reporter.capture(error, tags);
-    if (!exhausted) return { status: 'failed', outcome: 'retry' };
-    await raiseFailure(deps, tags, 'retries_exhausted');
-    return { status: 'failed', outcome: 'exhausted' };
+    return fail(error, 'handler');
   }
   logger.info('job done', { ...fields, duration_ms: Math.round(performance.now() - started) });
   return { status: 'completed', outcome: 'done' };

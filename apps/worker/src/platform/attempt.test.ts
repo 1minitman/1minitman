@@ -171,10 +171,34 @@ describe('runAttempt()', () => {
     expect(JSON.stringify(logger.lines)).not.toContain('plain string');
   });
 
-  test('a catalogue read error propagates, so the queue retries the attempt', async () => {
-    const { job } = counting();
-    const { deps } = fakeDeps([]);
+  test('a catalogue read error is a failed attempt: logged, reported and retried', async () => {
+    const { job, calls } = counting();
+    const { deps, reporter, notifier, logger } = fakeDeps([]);
     deps.catalogue = { get: () => Promise.reject(new Error('database down')) };
-    await expect(runAttempt(job, attempt(), deps)).rejects.toThrow('database down');
+    expect(await runAttempt(job, attempt({ retryCount: 0, retryLimit: 2 }), deps)).toEqual({
+      status: 'failed',
+      outcome: 'retry',
+    });
+    expect(calls).toHaveLength(0);
+    expect((reporter.captured[0]?.error as Error).message).toBe('database down');
+    expect(notifier.failures).toHaveLength(0);
+    const line = logger.lines.find((l) => l.level === 'error');
+    expect(line?.message).toBe('job failed: will retry');
+    expect(line?.fields?.stage).toBe('catalogue');
+  });
+
+  test('a catalogue read error on the last attempt raises job.failed', async () => {
+    const { job, calls } = counting();
+    const { deps, notifier, logger } = fakeDeps([]);
+    deps.catalogue = { get: () => Promise.reject(new Error('database down')) };
+    expect(await runAttempt(job, attempt({ retryCount: 2, retryLimit: 2 }), deps)).toEqual({
+      status: 'failed',
+      outcome: 'exhausted',
+    });
+    expect(calls).toHaveLength(0);
+    expect(notifier.failures).toEqual([
+      { job: 'test.counting', jobId: 'job-1', reason: 'retries_exhausted' },
+    ]);
+    expect(logger.lines.some((l) => l.message === 'job failed: retries exhausted')).toBe(true);
   });
 });

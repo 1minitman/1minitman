@@ -7,6 +7,7 @@ import { postgresFailureNotifier } from './platform/failure-notifier';
 import { createLogger, errorLabel } from './platform/logger';
 import { createSentryReporter } from './platform/reporter';
 import { startRunner } from './platform/runner';
+import { createShutdown } from './platform/shutdown';
 
 const env = loadEnv();
 const logger = createLogger(env.LOG_LEVEL, { service: 'worker' });
@@ -45,12 +46,14 @@ await startRunner(boss, jobs, {
   notifier: postgresFailureNotifier(database),
 });
 
-const shutdown = async (signal: string) => {
-  logger.info('shutting down', { signal });
-  await boss.stop({ graceful: true, timeout: 20_000 });
-  await reporter.flush(2_000);
-  await database.close();
-  process.exit(0);
-};
+const shutdown = createShutdown({
+  logger,
+  steps: [
+    () => boss.stop({ graceful: true, timeout: 20_000 }),
+    () => reporter.flush(2_000),
+    () => database.close(),
+  ],
+  exit: (code) => process.exit(code),
+});
 process.on('SIGINT', () => void shutdown('SIGINT'));
 process.on('SIGTERM', () => void shutdown('SIGTERM'));
