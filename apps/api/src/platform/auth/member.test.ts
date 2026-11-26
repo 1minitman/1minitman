@@ -10,6 +10,7 @@ import {
   createRedisSessionDenyList,
   currentMember,
   denyAllMemberAuthPorts,
+  SESSION_DENY_LIST_TIMEOUT_MS,
   sessionDenyKey,
   type MemberAuthPorts,
   type MemberPrincipal,
@@ -249,5 +250,37 @@ describe.skipIf(!redis)('Redis session denylist', () => {
     } finally {
       down.close();
     }
+  });
+});
+
+describe('Redis session denylist timeout', () => {
+  test('a Redis that accepts the connection but never answers rejects within the timeout', async () => {
+    // A TCP listener that never replies: the command neither succeeds nor fails on its own.
+    const silent = Bun.listen({ hostname: '127.0.0.1', port: 0, socket: { data() {} } });
+    const hung = new RedisClient(`redis://127.0.0.1:${silent.port}`, {
+      autoReconnect: false,
+      connectionTimeout: 10_000,
+    });
+    try {
+      const started = Date.now();
+      const denyList = createRedisSessionDenyList(hung, 50);
+      await expect(denyList.isDenied('any')).rejects.toThrow('timed out after 50 ms');
+      expect(Date.now() - started).toBeLessThan(2_000);
+
+      const app = appWith(ports({ denyList }));
+      await expectProblem(
+        await app.request('/v1/me', bearer('good.token.sig')),
+        503,
+        'dependency_unavailable',
+      );
+    } finally {
+      hung.close();
+      silent.stop(true);
+    }
+  });
+
+  test('the coded default stays inside the 200 ms read budget', () => {
+    expect(SESSION_DENY_LIST_TIMEOUT_MS).toBeGreaterThan(0);
+    expect(SESSION_DENY_LIST_TIMEOUT_MS).toBeLessThan(200);
   });
 });

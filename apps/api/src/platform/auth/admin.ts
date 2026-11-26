@@ -14,7 +14,7 @@ import type { AdminPrincipal } from './principals';
  * scope matches the target, IP allowed, fresh MFA for `requires_reauth` permissions. The first
  * check that refuses ends the request; later checks never run.
  *
- * Every check is a port. MOD-01 (MOD-01-API-02, MOD-01-API-03) supplies the implementations;
+ * Every check is a port. MOD-01 (MOD-01-API-01, MOD-01-API-03) supplies the implementations;
  * until then the composition root wires `denyAllAdminAuthPorts()` and every guarded route
  * answers 401. The admin cookie is the only credential: a member token is never accepted here
  * (MOD-01 rule 4), because nothing in this pipeline reads one.
