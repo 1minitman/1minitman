@@ -4,6 +4,7 @@ import { createRouter, type Router } from '../platform/http/router';
 import type { IdempotencyStore } from '../platform/idempotency';
 import type { RateLimits } from '../platform/rate-limit';
 import type { AdminStreamHub, WebSocketGateway } from '../platform/realtime';
+import { mountWebhookRoutes, type WebhookIntake } from '../platform/webhooks';
 
 /**
  * One router per API surface. A feature module adds its routes to the surface it serves:
@@ -43,6 +44,14 @@ export interface SurfaceDeps {
    * `adminStream.publishToAdmin()` / `publishToAll()` raise admin events.
    */
   realtime: { gateway: WebSocketGateway; adminStream: AdminStreamHub };
+  /**
+   * Vendor webhooks (MOD-00-API-08). The owning module calls `webhooks.register(vendor)` with its
+   * route path, signature check, event parser and the event types it processes; the intake
+   * verifies, stores once in `webhook_events`, acknowledges and enqueues [TR §12].
+   * Notifications are written with `writeOutbox(tx, ...)` from `@1minitman/db` in the same
+   * transaction as the change [TR §4.2].
+   */
+  webhooks: WebhookIntake;
 }
 
 const builders: Record<SurfaceName, (router: Router, deps: SurfaceDeps) => Router> = {
@@ -55,5 +64,5 @@ export const createSurfaceRouter = (name: SurfaceName, deps: SurfaceDeps): Route
   builders[name](createRouter().basePath(SURFACES[name].basePath) as Router, deps);
 
 /** Vendor webhooks: signature verified, stored once, never part of a client SDK. */
-export const createWebhooksRouter = (_deps: SurfaceDeps): Router =>
-  createRouter().basePath(WEBHOOKS_BASE_PATH) as Router;
+export const createWebhooksRouter = (deps: SurfaceDeps): Router =>
+  mountWebhookRoutes(createRouter().basePath(WEBHOOKS_BASE_PATH) as Router, deps.webhooks);

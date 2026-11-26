@@ -14,6 +14,7 @@ import { echoEvent } from './echo';
 import { createWebSocketGateway } from './gateway';
 import { createRedisRelay } from './relay';
 import { createAdminStreamHub } from './sse-hub';
+import { createMemoryWebhookStore, createWebhookIntake, pendingRowWebhookQueue } from '../webhooks';
 
 // Integration: two API instances in this process, each with its own Redis connections, against
 // the local Redis (`pnpm services:up`). Keys use random member ids and are deleted afterwards.
@@ -69,6 +70,11 @@ const startInstance = async () => {
       auth: denyAllAuth(),
       idempotency: createMemoryIdempotencyStore(),
       realtime: { gateway, adminStream },
+      webhooks: createWebhookIntake({
+        store: createMemoryWebhookStore(),
+        queue: pendingRowWebhookQueue,
+        logger,
+      }),
     },
   });
   // Stands in for MOD-01's GET /admin/v1/stream.

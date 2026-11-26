@@ -20,3 +20,12 @@ export type {
 } from './keyset';
 export { isVersionToken, updateIfMatch, versionToken } from './optimistic';
 export type { ConditionalUpdate, RowVersion } from './optimistic';
+export { OutboxInputError, writeOutbox } from './outbox';
+export type {
+  MemberRecipient,
+  OtherRecipient,
+  OutboxNotification,
+  OutboxWriteResult,
+} from './outbox';
+export { recordWebhookEvent } from './webhooks';
+export type { NewWebhookEvent, StoredWebhookEvent } from './webhooks';

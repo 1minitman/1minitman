@@ -11,6 +11,11 @@ import {
   staticPolicySource,
 } from './platform/rate-limit';
 import { createInMemoryRealtime } from './platform/realtime';
+import {
+  createMemoryWebhookStore,
+  createWebhookIntake,
+  pendingRowWebhookQueue,
+} from './platform/webhooks';
 
 const probe = (name: 'database' | 'redis', ok: boolean) => ({
   name,
@@ -32,6 +37,11 @@ const deps = (databaseUp = true): AppDeps => ({
     auth: denyAllAuth(),
     idempotency: createMemoryIdempotencyStore(),
     realtime: createInMemoryRealtime(createLogger('error')),
+    webhooks: createWebhookIntake({
+      store: createMemoryWebhookStore(),
+      queue: pendingRowWebhookQueue,
+      logger: createLogger('error'),
+    }),
   },
 });
 const build = (databaseUp = true) => createApp(deps(databaseUp));

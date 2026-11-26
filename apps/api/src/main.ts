@@ -25,6 +25,11 @@ import {
   postgresPolicySource,
   subscribeToPolicyChanges,
 } from './platform/rate-limit';
+import {
+  createWebhookIntake,
+  pendingRowWebhookQueue,
+  postgresWebhookStore,
+} from './platform/webhooks';
 
 // Composition root: the only place that knows concrete infrastructure.
 const env = loadEnv();
@@ -79,6 +84,14 @@ const adminStream = createAdminStreamHub({
   logger,
 });
 
+// Vendor webhooks (MOD-00-API-08): owning modules register their vendors on `webhooks`. Until a
+// processing queue is named (GAP-MOD00-29) a stored event waits as `received` for webhooks.retry.
+const webhooks = createWebhookIntake({
+  store: postgresWebhookStore(database),
+  queue: pendingRowWebhookQueue,
+  logger,
+});
+
 const app = createApp({
   env,
   logger,
@@ -95,6 +108,7 @@ const app = createApp({
     },
     idempotency: createRedisIdempotencyStore(redis),
     realtime: { gateway, adminStream },
+    webhooks,
   },
 });
 
