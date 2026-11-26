@@ -5,6 +5,8 @@ import { createDatabase, type Database } from './client';
 import {
   isKeysetId,
   isKeysetKey,
+  KEYSET_TIMESTAMP_MAX,
+  KEYSET_TIMESTAMP_MIN,
   keysetPage,
   keysetPlan,
   type KeysetPosition,
@@ -21,8 +23,13 @@ describe('isKeysetKey', () => {
   test.each([
     ['timestamp', '1764151200123456', true],
     ['timestamp', '-1', true],
-    ['timestamp', '9223372036854775807', true],
-    ['timestamp', '9223372036854775808', false],
+    ['timestamp', '-210866803200000000', true],
+    ['timestamp', '-210866803200000001', false],
+    ['timestamp', '576460752303423487', true],
+    ['timestamp', '576460752303423488', false],
+    ['timestamp', '9223372036854775807', false],
+    ['integer', '9223372036854775807', true],
+    ['integer', '9223372036854775808', false],
     ['timestamp', '12.5', false],
     ['timestamp', '1; DROP TABLE users', false],
     ['integer', '42', true],
@@ -211,6 +218,43 @@ describe.skipIf(!ready)('keyset pages on PostgreSQL', () => {
     expect(seen.walked.lastPage.hasMore).toBe(false);
     // Backwards from the last page: the four earlier pages, identical to the forward ones.
     expect(seen.walked.backward).toEqual(seen.walked.forward.slice(0, -1));
+  });
+
+  test('a timestamp key at either end of its range pages exactly, without a cast error', async () => {
+    const sort: KeysetSort = { column: items.createdAt, kind: 'timestamp', direction: 'asc' };
+    const seen = await rolledBack(async (tx) => {
+      await tx.execute(sql`CREATE TEMP TABLE keyset_items (
+        id uuid PRIMARY KEY, created_at timestamptz NOT NULL, name text NOT NULL, n integer NOT NULL
+      ) ON COMMIT DROP`);
+      // The first and last instants a cursor carries, and their neighbours one microsecond inside.
+      await tx.execute(sql`INSERT INTO keyset_items VALUES
+        (gen_random_uuid(), '4714-11-24 00:00:00+00 BC', 'a', 1),
+        (gen_random_uuid(), '4714-11-24 00:00:00.000001+00 BC', 'b', 2),
+        (gen_random_uuid(), '20237-04-25 10:45:03.423486+00', 'c', 3),
+        (gen_random_uuid(), '20237-04-25 10:45:03.423487+00', 'd', 4)`);
+      const read = async (position?: KeysetPosition) => {
+        const plan = keysetPlan({ sort, id: items.id, limit: 10, position });
+        const rows = await tx
+          .select({ id: items.id, name: items.name, cursor_key: plan.key })
+          .from(items)
+          .where(plan.where)
+          .orderBy(...plan.orderBy)
+          .limit(plan.fetch);
+        return keysetPage(rows, { limit: 10, position, idOf: (r) => r.id }).rows;
+      };
+      const all = await read();
+      const after = await read({ key: all[0]!.cursor_key, id: all[0]!.id, toward: 'next' });
+      const before = await read({ key: all[3]!.cursor_key, id: all[3]!.id, toward: 'prev' });
+      return { all, after, before };
+    });
+    expect(seen.all.map((r) => r.cursor_key)).toEqual([
+      String(KEYSET_TIMESTAMP_MIN),
+      String(KEYSET_TIMESTAMP_MIN + 1n),
+      String(KEYSET_TIMESTAMP_MAX - 1n),
+      String(KEYSET_TIMESTAMP_MAX),
+    ]);
+    expect(seen.after.map((r) => r.name)).toEqual(['b', 'c', 'd']);
+    expect(seen.before.map((r) => r.name)).toEqual(['a', 'b', 'c']);
   });
 
   test('the page condition combines with the list filter', async () => {

@@ -34,10 +34,19 @@ const NUMERIC = /^-?\d{1,100}(\.\d{1,100})?$/;
 /** Longest text sort key a cursor carries; keeps a cursor short enough for a URL. */
 export const KEYSET_TEXT_KEY_MAX = 256;
 
-const fitsInt8 = (value: string) => {
+/**
+ * Range of a timestamp key, in microseconds since the Unix epoch. The low end is PostgreSQL's
+ * earliest `timestamptz` (4714-11-24 00:00 UTC BC); the high end, 2^59 - 1 (the year 20237), is
+ * where the cast in `keyValue` stops being exact (it multiplies an interval by a float8). A key
+ * outside it would make the cast fail (a 500) or name the wrong microsecond, so it is refused.
+ */
+export const KEYSET_TIMESTAMP_MIN = -210866803200000000n;
+export const KEYSET_TIMESTAMP_MAX = 2n ** 59n - 1n;
+
+const inRange = (value: string, min: bigint, max: bigint) => {
   if (!INTEGER.test(value)) return false;
   const n = BigInt(value);
-  return n <= INT8_MAX && n >= -INT8_MAX - 1n;
+  return n <= max && n >= min;
 };
 
 /**
@@ -48,8 +57,9 @@ export const isKeysetKey = (kind: KeysetKind, key: unknown): key is string => {
   if (typeof key !== 'string') return false;
   switch (kind) {
     case 'timestamp':
+      return inRange(key, KEYSET_TIMESTAMP_MIN, KEYSET_TIMESTAMP_MAX);
     case 'integer':
-      return fitsInt8(key);
+      return inRange(key, -INT8_MAX - 1n, INT8_MAX);
     case 'numeric':
       return NUMERIC.test(key);
     case 'uuid':
@@ -75,7 +85,9 @@ export const keysetKey = (sort: KeysetSort): SQL<string> =>
 const keyValue = (kind: KeysetKind, key: string): SQL => {
   switch (kind) {
     case 'timestamp':
-      return sql`(timestamptz 'epoch' + ${key}::bigint * interval '1 microsecond')`;
+      // Whole seconds and the remaining microseconds apart: one product of the full key would be
+      // rounded by the float8 multiply once it passes 2^53 microseconds (the year 2255).
+      return sql`(timestamptz 'epoch' + (${key}::bigint / 1000000) * interval '1 second' + (${key}::bigint % 1000000) * interval '1 microsecond')`;
     case 'text':
       return sql`${key}::text`;
     case 'citext':

@@ -72,8 +72,11 @@ const hex = (bytes: ArrayBuffer) => Buffer.from(bytes).toString('hex');
 
 const fingerprintOf = async (c: Context<AppEnv>, route: string, body: ArrayBuffer) => {
   const principal = c.get('member')?.memberId ?? c.get('admin')?.adminId ?? '';
+  // The query string is part of the request: the same body sent with another query is another
+  // request. It is hashed here, never logged (MOD-00 plan rule 10).
+  const query = new URL(c.req.url).search;
   const head = new TextEncoder().encode(
-    `${route}\n${c.req.path}\n${principal}\n${c.req.header('content-type') ?? ''}\n`,
+    `${route}\n${c.req.path}\n${query}\n${principal}\n${c.req.header('content-type') ?? ''}\n`,
   );
   const all = new Uint8Array(head.byteLength + body.byteLength);
   all.set(head, 0);

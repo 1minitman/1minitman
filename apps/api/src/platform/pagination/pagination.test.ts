@@ -58,6 +58,7 @@ describe('cursor codec', () => {
     ['a bad direction', forge({ ...valid, t: 'x' })],
     ['an injected key', forge({ ...valid, k: "1'); DROP TABLE users; --" })],
     ['a key out of range', forge({ ...valid, k: '99999999999999999999' })],
+    ['a timestamp PostgreSQL cannot cast', forge({ ...valid, k: '9223372036854775807' })],
     ['a numeric key as a number', forge({ ...valid, k: 1764151200123456 })],
     ['a bad id', forge({ ...valid, i: 'not-a-uuid' })],
   ])('a cursor that is %s is a 422 validation on `cursor`', (_, cursor) => {
