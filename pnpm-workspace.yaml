@@ -23,6 +23,11 @@ catalog:
   # React Native is pinned to the exact version the Expo SDK ships with, everywhere.
   react-native: 0.88.1
 
+# Security overrides (Dependabot alerts 1 and 2). Both are development tools only.
+overrides:
+  '@esbuild-kit/core-utils>esbuild': ^0.25.0
+  '@expo/fingerprint>minimatch': ^11.0.1
+
 # pnpm 10 runs install scripts only for packages listed here.
 onlyBuiltDependencies:
   - bun

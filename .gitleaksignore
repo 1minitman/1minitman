@@ -1,3 +1,5 @@
 # Verified false positives only, one fingerprint per line (commit:file:rule:line).
 # A sample UUID in a schema test, flagged as generic-api-key because the schema is IdempotencyKeySchema.
+# The first line is the original task commit; the second is the same line after #20 was squash-merged into develop.
 75f81779031acca1b0a3ddba93c43596b01b3202:packages/contracts/src/schemas/primitives.test.ts:generic-api-key:113
+f7ed29e868e3a45082bf05814a161ff2de6863d1:packages/contracts/src/schemas/primitives.test.ts:generic-api-key:113
