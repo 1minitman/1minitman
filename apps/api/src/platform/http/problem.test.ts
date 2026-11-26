@@ -89,10 +89,21 @@ describe('ProblemError', () => {
   test('buildProblem never lets details override the code, path or request id', () => {
     const body = buildProblem('blocked', '/v1/x', 'req_12345678', {
       detail: 'd',
-      ...({ reason: 'internal', status: 200, request_id: 'x' } as object),
+      ...({
+        reason: 'internal',
+        status: 200,
+        title: 'OK',
+        type: 'about:blank',
+        instance: '/elsewhere',
+        request_id: 'x',
+      } as object),
     });
     expect(body).toMatchObject({
       reason: 'blocked',
+      status: 403,
+      title: 'Blocked',
+      type: problemType('blocked'),
+      detail: 'd',
       instance: '/v1/x',
       request_id: 'req_12345678',
     });
@@ -135,20 +146,30 @@ describe('problem responses', () => {
   test.each([
     [400, 'bad_request'],
     [401, 'unauthenticated'],
+    [404, 'not_found'],
+    [410, 'expired'],
+    [412, 'precondition_failed'],
     [413, 'payload_too_large'],
     [415, 'unsupported_media_type'],
+    [428, 'precondition_required'],
+    [502, 'provider_error'],
     [503, 'dependency_unavailable'],
+    [504, 'provider_timeout'],
   ])('HTTPException %d becomes %s', async (status, reason) => {
     const res = await send(`/http/${status}`);
     expect(res.status).toBe(status);
     expect((await problemOf(res)).reason).toBe(reason);
   });
 
-  test('an HTTPException status with no platform code is internal', async () => {
-    const res = await send('/http/403');
-    expect(res.status).toBe(500);
-    expect((await problemOf(res)).reason).toBe('internal');
-  });
+  // 422, 423 and 429 have codes, but those codes must carry a member an HTTPException lacks.
+  test.each([403, 422, 423, 429])(
+    'an HTTPException %d with no platform code is internal',
+    async (status) => {
+      const res = await send(`/http/${status}`);
+      expect(res.status).toBe(500);
+      expect((await problemOf(res)).reason).toBe('internal');
+    },
+  );
 });
 
 describe('validation problems', () => {

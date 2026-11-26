@@ -14,11 +14,12 @@ export const buildProblem = (
   details: ProblemDetails = {},
 ): Problem => {
   const { status, title } = PROBLEM_CODES[code];
+  // The registry members come after `details`, so nothing a caller passes can change them.
   return {
+    ...details,
     type: problemType(code),
     title,
     status,
-    ...details,
     instance,
     request_id: requestId,
     reason: code,
@@ -41,7 +42,9 @@ export const problemResponse = (
 
 /**
  * Hono raises HTTPException for conditions it detects itself (a body over the limit, a body
- * that is not JSON). Each status maps to the platform code for that condition.
+ * that is not JSON). Each status maps to the platform code for that condition. Codes that must
+ * carry an extension member (`validation`, `locked`, `rate_limited`) are left out: an
+ * HTTPException cannot supply it, so those statuses fall through to `internal` and are logged.
  */
 const HTTP_EXCEPTION_CODES: Partial<Record<number, ProblemCode>> = {
   400: 'bad_request',
@@ -51,10 +54,7 @@ const HTTP_EXCEPTION_CODES: Partial<Record<number, ProblemCode>> = {
   412: 'precondition_failed',
   413: 'payload_too_large',
   415: 'unsupported_media_type',
-  422: 'validation',
-  423: 'locked',
   428: 'precondition_required',
-  429: 'rate_limited',
   502: 'provider_error',
   503: 'dependency_unavailable',
   504: 'provider_timeout',
