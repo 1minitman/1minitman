@@ -178,7 +178,7 @@ describe('admin SSE hub', () => {
     const { hub, relay, app } = setup({ filter: stuck, maxQueued: 2 });
     const res = await app.request('/stream/adm-1');
     for (let i = 0; i < 4; i += 1) {
-      await hub.publishToAll({ type: 'queue.counts', data: { i }, permission: null });
+      await hub.publishToAll({ type: 'queue.counts', data: { i }, permission: 'reports.read' });
     }
     await Bun.sleep(5);
     release();
@@ -224,8 +224,42 @@ describe('admin SSE hub', () => {
   test('publishing an event that breaks the envelope throws', async () => {
     const { hub } = setup();
     await expect(
-      hub.publishToAll({ type: 'Bad Type', data: {}, permission: null }),
+      hub.publishToAll({ type: 'Bad Type', data: {}, permission: 'reports.read' }),
     ).rejects.toThrow();
+  });
+});
+
+describe('all-admin events need a permission', () => {
+  test('publishToAll refuses an event without a permission instead of bypassing the filter', async () => {
+    const { hub, relay } = setup();
+    const published: string[] = [];
+    await relay.join(ADMIN_ALL_CHANNEL, (text) => void published.push(text));
+    for (const permission of [null, '']) {
+      await expect(
+        hub.publishToAll({
+          type: 'queue.counts',
+          data: {},
+          permission: permission as unknown as string,
+        }),
+      ).rejects.toThrow();
+    }
+    expect(published).toEqual([]);
+  });
+
+  test('a message on ch:admin:all without a permission is dropped by the stream', async () => {
+    const { relay, app } = setup();
+    const stream = reader(await app.request('/stream/adm-1'));
+    await relay.publish(
+      ADMIN_ALL_CHANNEL,
+      JSON.stringify({
+        type: 'queue.counts',
+        data: {},
+        permission: null,
+        at: '2026-11-26T10:00:00.000Z',
+      }),
+    );
+    expect(await stream.read(1, 50)).toEqual([]);
+    await stream.cancel();
   });
 });
 

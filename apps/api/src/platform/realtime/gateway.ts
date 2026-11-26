@@ -42,7 +42,9 @@ import type { Relay, RelayListener } from './relay';
  *
  * After `ready` the client sends `presence.heartbeat` every 30 s; each one refreshes the
  * connection registry's 120 s TTL and checks the denylist again, so a revoked session loses its
- * socket within one heartbeat. A socket that sends nothing for 120 s is closed by the server.
+ * socket within one heartbeat. A socket that sends nothing for 120 s is closed by the server, and
+ * so is one that sends other frames but no heartbeat for 120 s (`auth_timeout`): any frame resets
+ * Bun's idle timeout, but only a heartbeat re-checks the session.
  *
  * Feature modules add events with `register()`: each has a zod schema (the same one REST uses),
  * an optional rate-limit policy from `rate_limit_policies`, and a handler. A frame that fails is
@@ -75,6 +77,8 @@ export interface SocketState {
   /** Frames are handled one at a time, in order. */
   queue: Promise<void>;
   pending: number;
+  /** When the last accepted heartbeat (or `ready`) happened, in `now()` milliseconds. */
+  lastHeartbeatAt?: number;
 }
 
 /** The part of Bun's `ServerWebSocket` the gateway uses; a test supplies a fake. */
@@ -123,6 +127,8 @@ export interface WebSocketGatewayDeps {
   /** Called on each heartbeat after the checks pass: MOD-07 and MOD-08 write presence here. */
   onHeartbeat?: (principal: MemberPrincipal) => Promise<void>;
   authTimeoutMs?: number;
+  /** No accepted heartbeat for this long after `ready` closes the socket; the 120 s TTL. */
+  heartbeatTimeoutMs?: number;
   slowConsumerBytes?: number;
   maxPendingFrames?: number;
   now?: () => number;
@@ -158,6 +164,7 @@ export const createWebSocketGateway = (deps: WebSocketGatewayDeps) => {
     registry,
     logger,
     authTimeoutMs = WS_AUTH_TIMEOUT_MS,
+    heartbeatTimeoutMs = WS_CONNECTION_TTL_SECONDS * 1000,
     slowConsumerBytes = WS_SLOW_CONSUMER_BYTES,
     maxPendingFrames = WS_MAX_PENDING_FRAMES,
     now = Date.now,
@@ -208,6 +215,22 @@ export const createWebSocketGateway = (deps: WebSocketGatewayDeps) => {
     const delay = expiresAt - now();
     if (delay <= 0) return close(ws, 'token_expired');
     startTimer(ws, Math.min(delay, MAX_TIMER_MS), () => armExpiry(ws, expiresAt));
+  };
+
+  /**
+   * Closes a socket whose last accepted heartbeat is older than the TTL. Other frames reset Bun's
+   * idle timeout but not this one, so a revoked session cannot keep its socket by never sending a
+   * heartbeat (the denylist is re-checked only there).
+   */
+  const armHeartbeatWatch = (ws: GatewaySocket) => {
+    const due = (ws.data.lastHeartbeatAt ?? now()) + heartbeatTimeoutMs - now();
+    if (due <= 0) {
+      logger.info('websocket missed its heartbeats, closing', {
+        connection_id: ws.data.connectionId,
+      });
+      return close(ws, 'auth_timeout');
+    }
+    startTimer(ws, Math.min(due, MAX_TIMER_MS), () => armHeartbeatWatch(ws));
   };
 
   const join = async (ws: GatewaySocket, channel: string) => {
@@ -286,7 +309,9 @@ export const createWebSocketGateway = (deps: WebSocketGatewayDeps) => {
     for (const timer of ws.data.timers) clearTimeout(timer);
     ws.data.timers.clear();
     ws.data.phase = 'open';
+    ws.data.lastHeartbeatAt = now();
     armExpiry(ws, principal.expiresAt.getTime());
+    armHeartbeatWatch(ws);
     send(ws, {
       type: WS_READY_FRAME,
       ...(frame.data.id ? { id: frame.data.id } : {}),
@@ -301,6 +326,7 @@ export const createWebSocketGateway = (deps: WebSocketGatewayDeps) => {
     if (!(await sessionLive(ws, principal))) return;
     try {
       await registry.refresh(principal.memberId, ws.data.connectionId);
+      ws.data.lastHeartbeatAt = now();
       await deps.onHeartbeat?.(principal);
     } catch (error) {
       logger.error('realtime store unavailable on heartbeat, closing websocket', {

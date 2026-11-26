@@ -38,8 +38,19 @@ const AdminChannelMessageSchema = z.strictObject({
 });
 export type AdminChannelMessage = z.infer<typeof AdminChannelMessageSchema>;
 
+/**
+ * What travels on `ch:admin:all`: the permission is required. `null` means "addressed to one
+ * admin", which on the all-admin channel would let the event past the permission filter.
+ */
+const AdminAllChannelMessageSchema = AdminChannelMessageSchema.extend({
+  permission: z.string().min(1),
+});
+
 /** An event as a module publishes it; `at` is set by the hub. */
 export type AdminEventInput = Omit<AdminChannelMessage, 'at'>;
+
+/** An event for every admin: it must name the permission a receiver holds. */
+export type AdminAllEventInput = Omit<z.infer<typeof AdminAllChannelMessageSchema>, 'at'>;
 
 /** Decides whether one admin's stream receives one event. MOD-01 implements it. */
 export interface AdminStreamFilter {
@@ -74,18 +85,22 @@ export const createAdminStreamHub = ({
   /** Ends each open stream; `close()` uses it so a shutdown is not held open by a tab. */
   const enders = new Set<() => void>();
 
-  const publish = async (channel: string, event: AdminEventInput) =>
-    relay.publish(
-      channel,
-      JSON.stringify(AdminChannelMessageSchema.parse({ ...event, at: now().toISOString() })),
-    );
+  const publish = async (
+    channel: string,
+    event: AdminEventInput,
+    schema: z.ZodType<AdminChannelMessage> = AdminChannelMessageSchema,
+  ) => relay.publish(channel, JSON.stringify(schema.parse({ ...event, at: now().toISOString() })));
 
   return {
     /** To one admin's tabs, on every instance. */
     publishToAdmin: (adminId: string, event: AdminEventInput) =>
       publish(adminChannel(adminId), event),
-    /** To every admin whose permission and scope the filter accepts. */
-    publishToAll: (event: AdminEventInput) => publish(ADMIN_ALL_CHANNEL, event),
+    /**
+     * To every admin whose permission and scope the filter accepts. The event must name a
+     * permission; one without is refused (it throws) rather than sent past the filter.
+     */
+    publishToAll: (event: AdminAllEventInput) =>
+      publish(ADMIN_ALL_CHANNEL, event, AdminAllChannelMessageSchema),
     /** Streams on this instance (for tests and metrics). */
     streamCount: () => open,
     /**
@@ -108,10 +123,10 @@ export const createAdminStreamHub = ({
       const ended = new Promise<void>((resolve) => (end = resolve));
       const finish = () => end?.();
 
-      const deliver = async (text: string) => {
+      const deliver = async (text: string, schema: z.ZodType<AdminChannelMessage>) => {
         let event: AdminChannelMessage;
         try {
-          event = AdminChannelMessageSchema.parse(JSON.parse(text));
+          event = schema.parse(JSON.parse(text));
         } catch (error) {
           logger.error('admin stream message malformed, dropped', { error: message(error) });
           return;
@@ -128,25 +143,32 @@ export const createAdminStreamHub = ({
         }
         if (allowed && write) await write(event);
       };
-      const listener: RelayListener = (text) => {
-        if (queued >= maxQueued) {
-          logger.warn('admin stream slow consumer, closing', { admin_id: principal.adminId });
-          end?.();
-          return;
-        }
-        queued += 1;
-        chain = chain
-          .then(() => deliver(text))
-          .catch(() => end?.())
-          .finally(() => {
-            queued -= 1;
-          });
-      };
+      const listenerFor =
+        (schema: z.ZodType<AdminChannelMessage>): RelayListener =>
+        (text) => {
+          if (queued >= maxQueued) {
+            logger.warn('admin stream slow consumer, closing', { admin_id: principal.adminId });
+            end?.();
+            return;
+          }
+          queued += 1;
+          chain = chain
+            .then(() => deliver(text, schema))
+            .catch(() => end?.())
+            .finally(() => {
+              queued -= 1;
+            });
+        };
 
-      const channels = [adminChannel(principal.adminId), ADMIN_ALL_CHANNEL];
-      const leaveAll = () => Promise.all(channels.map((channel) => relay.leave(channel, listener)));
+      // A message on the all-admin channel without a permission is dropped as malformed.
+      const subscriptions: [string, RelayListener][] = [
+        [adminChannel(principal.adminId), listenerFor(AdminChannelMessageSchema)],
+        [ADMIN_ALL_CHANNEL, listenerFor(AdminAllChannelMessageSchema)],
+      ];
+      const leaveAll = () =>
+        Promise.all(subscriptions.map(([channel, listener]) => relay.leave(channel, listener)));
       try {
-        for (const channel of channels) await relay.join(channel, listener);
+        for (const [channel, listener] of subscriptions) await relay.join(channel, listener);
       } catch (error) {
         await leaveAll();
         logger.error('admin stream could not subscribe', { error: message(error) });
