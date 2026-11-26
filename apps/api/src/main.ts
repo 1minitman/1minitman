@@ -1,4 +1,4 @@
-import { createDatabase } from '@1minitman/db';
+import { assertAppEnv, createDatabase } from '@1minitman/db';
 import { RedisClient } from 'bun';
 import { createApp } from './app';
 import { loadEnv } from './config/env';
@@ -44,6 +44,8 @@ const adminDatabase = createDatabase({
   max: 5,
   applicationName: 'api-admin',
 });
+// TRX-056: in production each login must carry app.env = 'production' as a role setting.
+await Promise.all([assertAppEnv(database), assertAppEnv(adminDatabase)]);
 const redis = new RedisClient(env.REDIS_URL);
 // A subscribed connection can run no other command, so the reload listener has its own.
 const redisSubscriber = new RedisClient(env.REDIS_URL);

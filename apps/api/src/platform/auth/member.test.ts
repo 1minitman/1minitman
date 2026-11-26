@@ -1,5 +1,5 @@
 import { RedisClient } from 'bun';
-import { afterAll, describe, expect, test } from 'bun:test';
+import { afterAll, describe, expect, spyOn, test } from 'bun:test';
 import { requestContext } from '../http/middleware';
 import { errorHandler } from '../http/problem';
 import { createRouter } from '../http/router';
@@ -188,6 +188,32 @@ describe('requireRecentAuth', () => {
       401,
       'unauthenticated',
     );
+  });
+
+  test('re-auth window unreadable: fails closed with 503 dependency_unavailable and logs', async () => {
+    const app = appWith(
+      ports({ recentAuth: { isRecent: () => Promise.reject(new Error('store down')) } }),
+    );
+    const logged = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const res = await app.request('/v1/me/password', {
+        method: 'PUT',
+        ...bearer('good.token.sig'),
+      });
+      await expectProblem(res, 503, 'dependency_unavailable');
+      const lines = logged.mock.calls.map(
+        (call) => JSON.parse(String(call[0])) as Record<string, unknown>,
+      );
+      expect(lines).toContainEqual(
+        expect.objectContaining({
+          level: 'error',
+          message: 're-auth window unavailable, refusing request',
+          error: 'store down',
+        }),
+      );
+    } finally {
+      logged.mockRestore();
+    }
   });
 
   test('the deny-by-default port refuses re-auth', async () => {

@@ -11,6 +11,7 @@ import {
   createMemoryRateLimiter,
   createPolicyStore,
   failsClosed,
+  normaliseIdentity,
   rateLimit,
   resolveSubject,
   staticPolicySource,
@@ -195,6 +196,28 @@ describe('rateLimit middleware', () => {
     expect(JSON.stringify(seen)).not.toContain('2348000000000');
   });
 
+  test('a supplied account identity is normalised and hashed: variants share one window, no raw address in the key', async () => {
+    const limiter = createMemoryRateLimiter();
+    const seen: LimitKeys[] = [];
+    const spy: RateLimiter = {
+      consume: (keys, rule) => (seen.push(keys), limiter.consume(keys, rule)),
+      lockRemaining: (key) => limiter.lockRemaining(key),
+    };
+    const app = appWith(
+      await rateLimitsWith([policy({ key: 'login.test', scope: 'account' })], spy),
+      'login.test',
+      { identity: (c) => c.req.header('x-email') },
+    );
+    await app.request('/', from('1.1.1.1', { 'x-email': 'Alice@Example.test' }));
+    await app.request('/', from('2.2.2.2', { 'x-email': ' alice@example.test ' }));
+    expect(
+      (await app.request('/', from('3.3.3.3', { 'x-email': 'ALICE@EXAMPLE.TEST' }))).status,
+    ).toBe(429);
+    const hash = createHash('sha256').update('alice@example.test').digest('hex');
+    expect(new Set(seen.map((k) => k.counter))).toEqual(new Set([`rl:login.test:${hash}`]));
+    expect(JSON.stringify(seen).toLowerCase()).not.toContain('example.test');
+  });
+
   test('an edit to the row applies on the next request, without a new middleware', async () => {
     let rows = [policy({ maxRequests: 1 })];
     const store = createPolicyStore({ load: () => Promise.resolve(rows) });
@@ -259,6 +282,7 @@ describe('resolveSubject', () => {
   test('ip, account, account_ip, device, phone and email', async () => {
     expect(await contextFor('ip')).toBe('9.9.9.9');
     expect(await contextFor('account', undefined, { member: 'm1' })).toBe('m1');
+    expect(await contextFor('account', 'staff@example.test')).toBe(sha('staff@example.test'));
     expect(await contextFor('account', undefined, { admin: 'a1' })).toBe('a1');
     expect(await contextFor('account')).toBeUndefined();
     expect(await contextFor('account_ip', 'staff@example.test')).toBe(
@@ -270,6 +294,31 @@ describe('resolveSubject', () => {
     expect(await contextFor('device')).toBeUndefined();
     expect(await contextFor('email', 'a@example.test')).toBe(sha('a@example.test'));
     expect(await contextFor('phone')).toBeUndefined();
+  });
+
+  test('case and white-space variants of a supplied identity map to one subject', async () => {
+    for (const scope of ['email', 'account', 'account_ip'] as const) {
+      const subjects = new Set(
+        await Promise.all(
+          ['Alice@x.test', 'alice@x.test ', ' ALICE@X.TEST'].map((v) => contextFor(scope, v)),
+        ),
+      );
+      expect(subjects.size).toBe(1);
+      expect([...subjects][0]).not.toContain('@');
+    }
+    expect(await contextFor('email', ' Alice@x.test ')).toBe(sha('alice@x.test'));
+  });
+
+  test('phone identities drop spaces, dashes and parentheses and keep the leading +', async () => {
+    const subjects = new Set(
+      await Promise.all(
+        ['+234 800 000 0000', '+234-800-000-0000', ' +234 (800) 000-0000 ', '+2348000000000'].map(
+          (v) => contextFor('phone', v),
+        ),
+      ),
+    );
+    expect([...subjects]).toEqual([sha('+2348000000000')]);
+    expect(normaliseIdentity('phone', ' (0800) 000 0000')).toBe('08000000000');
   });
 
   test('without Cloudflare the first X-Forwarded-For address is used', async () => {
