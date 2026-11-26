@@ -4,7 +4,11 @@ import { buildOpenApiDocument, createApp, type AppDeps } from './app';
 import { createCheckReadiness } from './modules/system';
 import { denyAllAuth } from './platform/auth';
 import { createLogger } from './platform/logger';
-import { createMemoryRateLimiter } from './platform/rate-limit';
+import {
+  createMemoryRateLimiter,
+  createPolicyStore,
+  staticPolicySource,
+} from './platform/rate-limit';
 
 const probe = (name: 'database' | 'redis', ok: boolean) => ({
   name,
@@ -18,7 +22,13 @@ const deps = (databaseUp = true): AppDeps => ({
     database: probe('database', databaseUp),
     redis: probe('redis', true),
   }),
-  surfaces: { rateLimiter: createMemoryRateLimiter(), auth: denyAllAuth() },
+  surfaces: {
+    rateLimits: {
+      policies: createPolicyStore(staticPolicySource([])),
+      limiter: createMemoryRateLimiter(),
+    },
+    auth: denyAllAuth(),
+  },
 });
 const build = (databaseUp = true) => createApp(deps(databaseUp));
 

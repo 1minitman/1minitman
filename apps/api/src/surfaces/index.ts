@@ -1,7 +1,7 @@
 import { SURFACES, WEBHOOKS_BASE_PATH, type SurfaceName } from '@1minitman/contracts';
 import type { AdminGuards, MemberGuards } from '../platform/auth';
 import { createRouter, type Router } from '../platform/http/router';
-import type { RateLimiter } from '../platform/rate-limit';
+import type { RateLimits } from '../platform/rate-limit';
 
 /**
  * One router per API surface. A feature module adds its routes to the surface it serves:
@@ -15,8 +15,11 @@ import type { RateLimiter } from '../platform/rate-limit';
  */
 /** What modules receive. It grows as modules are added (database, use cases, ...). */
 export interface SurfaceDeps {
-  /** Redis-backed limiter. Use it with rateLimit() on auth, billing and form routes. */
-  rateLimiter: RateLimiter;
+  /**
+   * Policies from `rate_limit_policies` and the Redis limiter. Attach with
+   * `rateLimit(deps.rateLimits, '<policy key>')`, or call `checkRateLimit()` from a handler.
+   */
+  rateLimits: RateLimits;
   /**
    * Route guards. Member routes use `auth.member.requireMember()` (and `requireRecentAuth()` for
    * M+); admin routes use `auth.admin.requireAdmin('<permission key>')`. Attach them per route:

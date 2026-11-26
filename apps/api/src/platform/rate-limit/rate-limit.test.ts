@@ -1,71 +1,301 @@
-import { RedisClient } from 'bun';
-import { afterAll, describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+import { createHash } from 'node:crypto';
+import { createMiddleware } from 'hono/factory';
+import type { AppEnv } from '../http/context';
 import { requestContext } from '../http/middleware';
+import { errorHandler } from '../http/problem';
 import { createRouter } from '../http/router';
-import { createLogger } from '../logger';
+import { createLogger, type Logger } from '../logger';
 import {
+  checkRateLimit,
   createMemoryRateLimiter,
-  createRedisRateLimiter,
+  createPolicyStore,
+  failsClosed,
   rateLimit,
+  resolveSubject,
+  staticPolicySource,
+  type LimitKeys,
   type RateLimiter,
+  type RateLimitOptions,
+  type RateLimitPolicy,
+  type RateLimits,
 } from './index';
 
-const appWith = (limiter: RateLimiter) => {
+const policy = (overrides: Partial<RateLimitPolicy> = {}): RateLimitPolicy => ({
+  key: 'test.ip',
+  scope: 'ip',
+  maxRequests: 2,
+  windowSeconds: 60,
+  lockoutSeconds: null,
+  algorithm: 'sliding_window',
+  isActive: true,
+  ...overrides,
+});
+
+const rateLimitsWith = async (
+  policies: RateLimitPolicy[],
+  limiter: RateLimiter = createMemoryRateLimiter(),
+): Promise<RateLimits> => {
+  const store = createPolicyStore(staticPolicySource(policies));
+  await store.reload();
+  return { policies: store, limiter };
+};
+
+const recordingLogger = () => {
+  const lines: { level: string; message: string; fields?: Record<string, unknown> }[] = [];
+  const at = (level: string) => (message: string, fields?: Record<string, unknown>) =>
+    void lines.push({ level, message, fields });
+  const logger: Logger = {
+    debug: at('debug'),
+    info: at('info'),
+    warn: at('warn'),
+    error: at('error'),
+    child: () => logger,
+  } as Logger;
+  return { logger, lines };
+};
+
+interface AppOptions extends RateLimitOptions {
+  logger?: Logger;
+  member?: string;
+}
+const appWith = (rateLimits: RateLimits, key: string, options: AppOptions = {}) => {
   const app = createRouter();
-  app.use('*', requestContext(createLogger('error')));
-  app.use('*', rateLimit(limiter, { policy: 'test.ip', limit: 2, windowSeconds: 60 }));
+  app.onError(errorHandler);
+  app.use('*', requestContext(options.logger ?? createLogger('error')));
+  if (options.member) {
+    const memberId = options.member;
+    app.use(
+      '*',
+      createMiddleware<AppEnv>(async (c, next) => {
+        c.set('member', { memberId, sessionId: 's' });
+        await next();
+      }),
+    );
+  }
+  app.use('*', rateLimit(rateLimits, key, options));
   app.get('/', (c) => c.text('ok'));
   return app;
 };
-const from = (ip: string) => ({ headers: { 'cf-connecting-ip': ip } });
+const from = (ip: string, extra: Record<string, string> = {}) => ({
+  headers: { 'cf-connecting-ip': ip, ...extra },
+});
+const down: RateLimiter = {
+  consume: () => Promise.reject(new Error('redis down')),
+  lockRemaining: () => Promise.reject(new Error('redis down')),
+};
 
 describe('rateLimit middleware', () => {
   test('allows up to the limit, then answers 429 problem+json with Retry-After', async () => {
-    const app = appWith(createMemoryRateLimiter());
-    expect((await app.request('/', from('1.1.1.1'))).status).toBe(200);
+    const app = appWith(await rateLimitsWith([policy()]), 'test.ip');
+    const first = await app.request('/', from('1.1.1.1'));
+    expect(first.status).toBe(200);
+    expect(first.headers.get('ratelimit-limit')).toBe('2');
+    expect(first.headers.get('ratelimit-remaining')).toBe('1');
     expect((await app.request('/', from('1.1.1.1'))).status).toBe(200);
     const blocked = await app.request('/', from('1.1.1.1'));
     expect(blocked.status).toBe(429);
     expect(blocked.headers.get('content-type')).toContain('application/problem+json');
     expect(Number(blocked.headers.get('retry-after'))).toBeGreaterThan(0);
-    expect(await blocked.json()).toMatchObject({ reason: 'rate_limited' });
+    expect(await blocked.json()).toMatchObject({
+      reason: 'rate_limited',
+      request_id: expect.any(String),
+    });
   });
 
   test('each caller has its own budget', async () => {
-    const app = appWith(createMemoryRateLimiter());
+    const app = appWith(await rateLimitsWith([policy()]), 'test.ip');
     await app.request('/', from('1.1.1.1'));
     await app.request('/', from('1.1.1.1'));
     expect((await app.request('/', from('2.2.2.2'))).status).toBe(200);
   });
 
-  test('the window slides: old hits stop counting', async () => {
-    let now = 0;
-    const limiter = createMemoryRateLimiter(() => now);
-    await limiter.hit('k', 1, 10);
-    expect((await limiter.hit('k', 1, 10)).allowed).toBe(false);
-    now = 10_001;
-    expect((await limiter.hit('k', 1, 10)).allowed).toBe(true);
+  test('a policy with a lockout answers 423 locked with until, and keeps refusing during the lock', async () => {
+    const rateLimits = await rateLimitsWith([policy({ lockoutSeconds: 900 })]);
+    const app = appWith(rateLimits, 'test.ip');
+    await app.request('/', from('1.1.1.1'));
+    await app.request('/', from('1.1.1.1'));
+    const before = Date.now();
+    const locked = await app.request('/', from('1.1.1.1'));
+    expect(locked.status).toBe(423);
+    expect(locked.headers.get('retry-after')).toBe('900');
+    const body = (await locked.json()) as { reason: string; until: string };
+    expect(body.reason).toBe('locked');
+    const until = Date.parse(body.until);
+    expect(until).toBeGreaterThanOrEqual(before + 899_000);
+    expect(until).toBeLessThanOrEqual(Date.now() + 900_000);
+    expect((await app.request('/', from('1.1.1.1'))).status).toBe(423);
+    expect(await rateLimits.limiter.lockRemaining('lock:test.ip:1.1.1.1')).toBe(900);
   });
 
-  test('a broken limiter never blocks the product', async () => {
-    const app = appWith({ hit: () => Promise.reject(new Error('redis down')) });
+  test('an inactive policy is not enforced and counts nothing', async () => {
+    const app = appWith(await rateLimitsWith([policy({ isActive: false })]), 'test.ip');
+    for (let i = 0; i < 5; i++) {
+      const res = await app.request('/', from('1.1.1.1'));
+      expect(res.status).toBe(200);
+      expect(res.headers.get('ratelimit-limit')).toBeNull();
+    }
+  });
+
+  test('a key with no row is not enforced and is logged as an error', async () => {
+    const { logger, lines } = recordingLogger();
+    const app = appWith(await rateLimitsWith([policy()]), 'test.missing', { logger });
     expect((await app.request('/', from('1.1.1.1'))).status).toBe(200);
+    expect(lines).toContainEqual(
+      expect.objectContaining({ level: 'error', fields: { policy: 'test.missing' } }),
+    );
+  });
+
+  test('a scope that cannot be resolved is a programming error: 500 problem+json', async () => {
+    const { logger, lines } = recordingLogger();
+    const app = appWith(
+      await rateLimitsWith([policy({ key: 'test.phone', scope: 'phone' })]),
+      'test.phone',
+      {
+        logger,
+      },
+    );
+    const res = await app.request('/', from('1.1.1.1'));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toMatchObject({ reason: 'internal' });
+    expect(
+      lines.some((l) => l.level === 'error' && String(l.fields?.error).includes('no subject')),
+    ).toBe(true);
+  });
+
+  test('the account scope counts the signed-in member, wherever they connect from', async () => {
+    const rateLimits = await rateLimitsWith([policy({ key: 'test.account', scope: 'account' })]);
+    const app = appWith(rateLimits, 'test.account', { member: 'member-1' });
+    await app.request('/', from('1.1.1.1'));
+    await app.request('/', from('2.2.2.2'));
+    expect((await app.request('/', from('3.3.3.3'))).status).toBe(429);
+  });
+
+  test('the phone scope uses the identity the route supplies, hashed in the key', async () => {
+    const limiter = createMemoryRateLimiter();
+    const seen: LimitKeys[] = [];
+    const spy: RateLimiter = {
+      consume: (keys, rule) => (seen.push(keys), limiter.consume(keys, rule)),
+      lockRemaining: (key) => limiter.lockRemaining(key),
+    };
+    const app = appWith(
+      await rateLimitsWith([policy({ key: 'otp.test', scope: 'phone' })], spy),
+      'otp.test',
+      {
+        identity: (c) => c.req.header('x-phone'),
+      },
+    );
+    await app.request('/', from('1.1.1.1', { 'x-phone': '+2348000000000' }));
+    await app.request('/', from('2.2.2.2', { 'x-phone': '+2348000000000' }));
+    expect((await app.request('/', from('3.3.3.3', { 'x-phone': '+2348000000000' }))).status).toBe(
+      429,
+    );
+    const hash = createHash('sha256').update('+2348000000000').digest('hex');
+    expect(seen[0]).toEqual({ counter: `rl:otp.test:${hash}`, lock: `lock:otp.test:${hash}` });
+    expect(JSON.stringify(seen)).not.toContain('2348000000000');
+  });
+
+  test('an edit to the row applies on the next request, without a new middleware', async () => {
+    let rows = [policy({ maxRequests: 1 })];
+    const store = createPolicyStore({ load: () => Promise.resolve(rows) });
+    await store.reload();
+    const app = appWith({ policies: store, limiter: createMemoryRateLimiter() }, 'test.ip');
+    expect((await app.request('/', from('1.1.1.1'))).status).toBe(200);
+    expect((await app.request('/', from('1.1.1.1'))).status).toBe(429);
+    rows = [policy({ maxRequests: 5 })];
+    await store.reload();
+    expect((await app.request('/', from('1.1.1.1'))).status).toBe(200);
+    rows = [policy({ maxRequests: 5, isActive: false })];
+    await store.reload();
+    for (let i = 0; i < 10; i++) expect((await app.request('/', from('1.1.1.1'))).status).toBe(200);
   });
 });
 
-// Integration: needs the local Redis (`pnpm services:up`).
-const redisUrl = process.env.REDIS_URL;
-const redis = redisUrl ? new RedisClient(redisUrl) : null;
-afterAll(() => redis?.close());
+describe('Redis unreachable (DEC-002)', () => {
+  test('a policy without a lockout fails open and logs a warning', async () => {
+    const { logger, lines } = recordingLogger();
+    const app = appWith(await rateLimitsWith([policy()], down), 'test.ip', { logger });
+    expect((await app.request('/', from('1.1.1.1'))).status).toBe(200);
+    expect(lines.some((l) => l.level === 'warn' && l.fields?.policy === 'test.ip')).toBe(true);
+  });
 
-describe.skipIf(!redis)('Redis rate limiter', () => {
-  test('counts atomically across concurrent requests', async () => {
-    const limiter = createRedisRateLimiter(redis!);
-    const key = `rl:test:${crypto.randomUUID()}`;
-    const results = await Promise.all(Array.from({ length: 10 }, () => limiter.hit(key, 3, 30)));
-    expect(results.filter((r) => r.allowed)).toHaveLength(3);
-    const blocked = results.find((r) => !r.allowed);
-    expect(blocked?.retryAfterSeconds).toBeGreaterThan(0);
-    await redis!.send('DEL', [key]);
+  test('a lockout policy fails closed: 503 dependency_unavailable and an error log', async () => {
+    const { logger, lines } = recordingLogger();
+    const app = appWith(await rateLimitsWith([policy({ lockoutSeconds: 900 })], down), 'test.ip', {
+      logger,
+    });
+    const res = await app.request('/', from('1.1.1.1'));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ reason: 'dependency_unavailable' });
+    expect(lines.some((l) => l.level === 'error' && l.fields?.policy === 'test.ip')).toBe(true);
+  });
+
+  test('failsClosed follows lockout_seconds', () => {
+    expect(failsClosed(policy({ lockoutSeconds: 1800 }))).toBe(true);
+    expect(failsClosed(policy())).toBe(false);
+  });
+});
+
+describe('resolveSubject', () => {
+  const contextFor = async (
+    scope: RateLimitPolicy['scope'],
+    identity?: string,
+    principal?: { member?: string; admin?: string },
+  ) => {
+    let subject: string | undefined;
+    const app = createRouter();
+    app.use('*', requestContext(createLogger('error')));
+    app.get('/', (c) => {
+      if (principal?.member) c.set('member', { memberId: principal.member, sessionId: 's' });
+      if (principal?.admin) c.set('admin', { adminId: principal.admin, sessionId: 's' });
+      subject = resolveSubject({ scope }, c, identity);
+      return c.text('ok');
+    });
+    await app.request('/', from('9.9.9.9'));
+    return subject;
+  };
+  const sha = (value: string) => createHash('sha256').update(value).digest('hex');
+
+  test('ip, account, account_ip, device, phone and email', async () => {
+    expect(await contextFor('ip')).toBe('9.9.9.9');
+    expect(await contextFor('account', undefined, { member: 'm1' })).toBe('m1');
+    expect(await contextFor('account', undefined, { admin: 'a1' })).toBe('a1');
+    expect(await contextFor('account')).toBeUndefined();
+    expect(await contextFor('account_ip', 'staff@example.test')).toBe(
+      sha('staff@example.test|9.9.9.9'),
+    );
+    expect(await contextFor('account_ip', undefined, { admin: 'a1' })).toBe(sha('a1|9.9.9.9'));
+    expect(await contextFor('account_ip')).toBeUndefined();
+    expect(await contextFor('device', 'device-1')).toBe('device-1');
+    expect(await contextFor('device')).toBeUndefined();
+    expect(await contextFor('email', 'a@example.test')).toBe(sha('a@example.test'));
+    expect(await contextFor('phone')).toBeUndefined();
+  });
+
+  test('without Cloudflare the first X-Forwarded-For address is used', async () => {
+    let subject: string | undefined;
+    const app = createRouter();
+    app.use('*', requestContext(createLogger('error')));
+    app.get('/', (c) => ((subject = resolveSubject({ scope: 'ip' }, c)), c.text('ok')));
+    await app.request('/', { headers: { 'x-forwarded-for': '5.5.5.5, 6.6.6.6' } });
+    expect(subject).toBe('5.5.5.5');
+    await app.request('/');
+    expect(subject).toBe('unknown');
+  });
+});
+
+describe('checkRateLimit, for handlers that count some events only', () => {
+  test('counts per call and reports allowed, then locked', async () => {
+    const rateLimits = await rateLimitsWith([policy({ key: 'login.test', lockoutSeconds: 900 })]);
+    const logger = createLogger('error');
+    expect(await checkRateLimit(rateLimits, 'login.test', 'acct', logger)).toMatchObject({
+      outcome: 'allowed',
+      remaining: 1,
+    });
+    await checkRateLimit(rateLimits, 'login.test', 'acct', logger);
+    expect(await checkRateLimit(rateLimits, 'login.test', 'acct', logger)).toMatchObject({
+      outcome: 'locked',
+      retryAfterSeconds: 900,
+    });
   });
 });

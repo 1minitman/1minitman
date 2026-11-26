@@ -3,7 +3,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { createDatabase, type Database } from '../client';
 import { databaseReady } from '../test-env';
 import { type Tx, withAdminTx } from '../transactions';
-import { featureFlags, remoteConfig } from './index';
+import { featureFlags, rateLimitPolicies, remoteConfig } from './index';
 
 // Each Drizzle model reads and writes its table on PostgreSQL 16 [1MM-STD-01 §3.3 Models], and a
 // versioned update holds under parallel connections [1MM-STD-01 §3.1, If-Match update] [TR §17.3].
@@ -98,6 +98,46 @@ describe.skipIf(!ready)('Drizzle models on PostgreSQL', () => {
       isKillSwitch: false,
     });
     expect(seen.updated).toMatchObject({ enabled: true, rolloutPercent: 50, rules: { country: ['NG'] } });
+  });
+
+  test('rate_limit_policies: insert, read back with defaults, update', async () => {
+    const key = `test.api03_model_${suffix}`;
+    const seen = await rolledBack(async (tx) => {
+      await tx.insert(rateLimitPolicies).values({
+        key,
+        scope: 'ip',
+        maxRequests: 3,
+        windowSeconds: 60,
+        appliesTo: 'test only',
+        description: 'MOD-00-API-03 model test, rolled back',
+      });
+      const [inserted] = await tx
+        .select()
+        .from(rateLimitPolicies)
+        .where(eq(rateLimitPolicies.key, key));
+      const [updated] = await tx
+        .update(rateLimitPolicies)
+        .set({ lockoutSeconds: 120, algorithm: 'fixed_window', isActive: false })
+        .where(eq(rateLimitPolicies.key, key))
+        .returning();
+      return { inserted, updated };
+    });
+
+    expect(seen.inserted).toMatchObject({
+      key,
+      scope: 'ip',
+      maxRequests: 3,
+      windowSeconds: 60,
+      lockoutSeconds: null,
+      algorithm: 'sliding_window',
+      isActive: true,
+      approvalId: null,
+    });
+    expect(seen.updated).toMatchObject({
+      lockoutSeconds: 120,
+      algorithm: 'fixed_window',
+      isActive: false,
+    });
   });
 
   describe('a versioned update under parallel connections', () => {
