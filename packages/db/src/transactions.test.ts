@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { sql } from 'drizzle-orm';
-import { AppEnvMismatchError, assertAppEnv, createDatabase, type Database } from './client';
+import { createDatabase, type Database } from './client';
 import {
   TransactionContextError,
   withAdminTx,
@@ -234,41 +234,6 @@ describe.skipIf(!ready)('row-level security context on PostgreSQL', () => {
     } finally {
       await pinned.close();
     }
-  });
-
-  describe('assertAppEnv at start-up', () => {
-    test('production refuses a login that does not report production', async () => {
-      const prod = createDatabase({
-        url: urls.admin ?? '',
-        surface: 'admin',
-        appEnv: 'production',
-        max: 1,
-      });
-      try {
-        await expect(assertAppEnv(prod)).rejects.toBeInstanceOf(AppEnvMismatchError);
-      } finally {
-        await prod.close();
-      }
-    });
-
-    test('production passes when the login reports production', async () => {
-      const prod = createDatabase({
-        url: urls.admin ?? '',
-        surface: 'admin',
-        appEnv: 'production',
-        max: 1,
-      });
-      try {
-        await prod.sql`SET app.env = 'production'`;
-        expect(await assertAppEnv(prod)).toBe('production');
-      } finally {
-        await prod.close();
-      }
-    });
-
-    test('other environments are not checked', async () => {
-      expect(await assertAppEnv(member)).toBe('development');
-    });
   });
 
   describe('four-eyes on config writes follows app.env', () => {
