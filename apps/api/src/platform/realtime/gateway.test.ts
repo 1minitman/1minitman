@@ -273,6 +273,30 @@ describe('after ready', () => {
     revoked.delete('sess-beat');
   });
 
+  test('other frames without a heartbeat do not keep the socket: it closes at the TTL', async () => {
+    const { gateway, connect } = setup({ heartbeatTimeoutMs: 40 });
+    gateway.register(echoEvent);
+    const client = connect();
+    await client.auth();
+    for (let i = 0; i < 6 && !client.closed(); i += 1) {
+      client.frame({ type: 'echo', data: { text: 'still here' } });
+      await Bun.sleep(15);
+    }
+    expect(client.closed()).toEqual({ code: WS_CLOSE_CODES.auth_timeout, reason: 'auth_timeout' });
+  });
+
+  test('regular heartbeats keep the socket open past the TTL', async () => {
+    const client = setup({ heartbeatTimeoutMs: 40 }).connect();
+    await client.auth();
+    for (let i = 0; i < 6; i += 1) {
+      client.frame({ type: 'presence.heartbeat' });
+      await Bun.sleep(15);
+    }
+    expect(client.closed()).toBeUndefined();
+    await Bun.sleep(60);
+    expect(client.closed()?.code).toBe(WS_CLOSE_CODES.auth_timeout);
+  });
+
   test('a heartbeat with a payload is refused; a registry failure on heartbeat closes', async () => {
     const memory = createMemoryConnectionRegistry();
     const registry: ConnectionRegistry = {
