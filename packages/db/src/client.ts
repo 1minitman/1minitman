@@ -14,8 +14,10 @@ export interface DatabaseOptions {
   /** The surface this pool serves; checked by `withMemberTx`, `withAdminTx` and `withWorkerTx`. */
   surface: DatabaseSurface;
   /**
-   * The deployment environment (`APP_ENV`). Sent as the `app.env` setting on every connection,
-   * so `app_env()` and the four-eyes rule in `enforce_config_approval()` see it.
+   * The deployment environment (`APP_ENV`). Hosted logins carry `app.env` as a role setting
+   * (`ALTER ROLE … SET app.env`, TRX-056), which always wins. The transaction helpers fall back to
+   * this value only when the session has none (local and test databases), and `assertAppEnv`
+   * refuses to start production when the database does not report `production`.
    */
   appEnv: string;
   /** Maximum connections held by this process. */
@@ -38,8 +40,9 @@ export const createDatabase = ({
   if (!appEnv) throw new Error('createDatabase: appEnv is required (APP_ENV)');
   const sql = postgres(url, {
     max,
-    // Startup parameters: every server connection carries them, including `app.env` [SQL app_env()].
-    connection: { application_name: applicationName, TimeZone: 'UTC', 'app.env': appEnv },
+    // Startup parameters. `app.env` is deliberately not one: it is a per-login role setting
+    // (TRX-056), and transaction-mode poolers refuse custom startup parameters.
+    connection: { application_name: applicationName, TimeZone: 'UTC' },
     // Schema NOTICEs are noise at runtime.
     onnotice: () => {},
   });
@@ -54,3 +57,24 @@ export const createDatabase = ({
 
 export type Database = ReturnType<typeof createDatabase>;
 export type Db = Database['db'];
+
+/** Raised at start-up when production runs against a database that does not report production. */
+export class AppEnvMismatchError extends Error {
+  override readonly name = 'AppEnvMismatchError';
+}
+
+/**
+ * Start-up check (TRX-056): when `appEnv` is `production`, the login's own `app.env` role setting
+ * must make `app_env()` report `production`, outside any transaction, or four-eyes enforcement
+ * would silently be off. Other environments are not checked. Returns what the database reports.
+ */
+export const assertAppEnv = async (database: Database): Promise<string> => {
+  const [row] = await database.sql<{ env: string }[]>`SELECT app_env() AS env`;
+  const reported = row?.env ?? '';
+  if (database.appEnv === 'production' && reported !== 'production') {
+    throw new AppEnvMismatchError(
+      `APP_ENV is production but the ${database.surface} database login reports app_env() = '${reported}'; set ALTER ROLE … SET app.env = 'production'`,
+    );
+  }
+  return reported;
+};
