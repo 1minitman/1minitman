@@ -101,10 +101,10 @@ Rules that go with the table:
 
 ### 3.3 Orientation
 
-| Class                                       | Portrait  | Landscape                                                                | Basis                                                                                    |
-| ------------------------------------------- | --------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| Phones (window width under 600 in portrait) | Supported | Locked to portrait, except full-screen media and calls, which may rotate | The scaffold is portrait only (`app.config.ts`); media exception is a **Recommendation** |
-| Tablets and unfolded foldables              | Supported | Supported; the class is recomputed from the new width                    | **Recommendation**; needs GAP-STD03-02                                                   |
+| Class                                       | Portrait  | Landscape                                                                | Basis                                                                                               |
+| ------------------------------------------- | --------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Phones (window width under 600 in portrait) | Supported | Locked to portrait, except full-screen media and calls, which may rotate | The scaffold is portrait only (`app.config.ts`); media exception **Decided** (DEC-005, 26 Nov 2026) |
+| Tablets and unfolded foldables              | Supported | Supported; the class is recomputed from the new width                    | **Recommendation**; needs GAP-STD03-02                                                              |
 
 A fold, unfold, rotation or split-screen resize must keep the screen, its scroll position, typed
 text and any running timer (the 1-Minute ring keeps counting from the server's time). This is a

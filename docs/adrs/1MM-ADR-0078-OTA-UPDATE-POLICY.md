@@ -4,7 +4,7 @@
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Status**       | Proposed                                                                                                                                                         |
 | **Date decided** | 24 Nov 2026 (proposed)                                                                                                                                           |
-| **Decided by**   | Engineering recommendation in 1MM-STD-19, awaiting the owner (GAP-STD19-04 needs an owner decision on code signing)                                              |
+| **Decided by**   | Engineering recommendation in 1MM-STD-19; code signing decided by the owner (DEC-007, 26 Nov 2026: signed from the first public build)                           |
 | **Sources**      | `docs/standards/1MM-STD-19-OTA-UPDATES.md`, `apps/mobile/app.config.ts`, `apps/mobile/eas.json`, [TR §5.1], [TR §17.3], [ADM A31], [OD-06], [SQL `app_versions`] |
 | **Affects**      | apps/mobile, CI workflows, apps/admin (A31); MOD-00, MOD-02, every mobile release                                                                                |
 

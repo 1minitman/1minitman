@@ -247,7 +247,7 @@ lowering one also needs the reason in the pull request.
 
 ### 4.1 Coverage floors
 
-The sources set no coverage numbers. These are a **Recommendation**, measured on lines and
+The sources set no coverage numbers. These are **Decided** (DEC-004, 26 Nov 2026), measured on lines and
 branches, enforced per workspace so a well-tested package cannot hide an untested one.
 
 | Workspace                                                          | Floor (lines / branches)              | Configured in                                       |
@@ -292,7 +292,7 @@ from there.
 
 ### 4.3 Flake policy
 
-The sources set none. **Recommendation:**
+The sources set none. **Decided** (DEC-004, 26 Nov 2026):
 
 | Rule                                      | Value                                                                                                                                                                                                                              | Configured in                                                                  |
 | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
