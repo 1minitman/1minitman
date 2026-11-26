@@ -31,31 +31,52 @@ export const rateLimitKeys = (policy: string, subject: string) => ({
 });
 
 /**
+ * A supplied identity in one canonical form, so that variants a person might type count as one
+ * subject: surrounding white space is dropped, anything containing `@` is lower-cased, and for the
+ * `phone` scope spaces, dashes and parentheses are removed (a leading `+` is kept; no country
+ * rules are applied).
+ */
+export const normaliseIdentity = (scope: RateLimitPolicy['scope'], identity: string): string => {
+  let value = identity.trim();
+  if (value.includes('@')) value = value.toLowerCase();
+  if (scope === 'phone') value = value.replace(/[\s\-()]/g, '');
+  return value;
+};
+
+/**
  * The subject a policy counts, from its scope. `identity` is what the route supplies: the device
  * id for `device`, the number for `phone`, the address for `email`, and the account for
  * `account` or `account_ip` when no one is signed in yet (for example the e-mail typed at an
- * admin sign-in). Without it, `account` uses the signed-in member or staff member, and `ip` the
- * caller's address. Phone numbers, e-mail addresses and `account_ip` pairs are stored hashed, so
- * no direct identifier sits in a Redis key. Returns undefined when the scope cannot be resolved.
+ * admin sign-in). A supplied identity is normalised first (`normaliseIdentity`). Without one,
+ * `account` uses the signed-in member or staff member id (a UUID, kept as it is), and `ip` the
+ * caller's address. Phone numbers, e-mail addresses, a supplied `account` identity and
+ * `account_ip` pairs are stored hashed, so no direct identifier sits in a Redis key. Returns
+ * undefined when the scope cannot be resolved.
  */
 export const resolveSubject = (
   policy: Pick<RateLimitPolicy, 'scope'>,
   c: Context<AppEnv>,
   identity?: string,
 ): string | undefined => {
-  const account = identity ?? c.get('member')?.memberId ?? c.get('admin')?.adminId;
+  const supplied =
+    identity === undefined || policy.scope === 'device'
+      ? identity
+      : normaliseIdentity(policy.scope, identity);
+  const signedIn = c.get('member')?.memberId ?? c.get('admin')?.adminId;
   switch (policy.scope) {
     case 'ip':
       return clientIp(c);
     case 'account':
-      return account;
-    case 'account_ip':
+      return supplied === undefined ? signedIn : sha256(supplied);
+    case 'account_ip': {
+      const account = supplied ?? signedIn;
       return account === undefined ? undefined : sha256(`${account}|${clientIp(c)}`);
+    }
     case 'device':
-      return identity;
+      return supplied;
     case 'phone':
     case 'email':
-      return identity === undefined ? undefined : sha256(identity);
+      return supplied === undefined ? undefined : sha256(supplied);
   }
 };
 
