@@ -4,7 +4,7 @@ import { loadEnv } from './config/env';
 import { jobs, pendingJobs } from './jobs';
 import { postgresCatalogue } from './platform/catalogue';
 import { postgresFailureNotifier } from './platform/failure-notifier';
-import { createLogger } from './platform/logger';
+import { createLogger, errorLabel } from './platform/logger';
 import { createSentryReporter } from './platform/reporter';
 import { startRunner } from './platform/runner';
 
@@ -31,7 +31,8 @@ const boss = new PgBoss({
   application_name: 'worker-queue',
   createSchema: false,
 });
-boss.on('error', (error) => logger.error('queue error', { error: error.message }));
+// The label only: a queue driver's message can quote a job payload or a query value.
+boss.on('error', (error) => logger.error('queue error', { error: errorLabel(error) }));
 
 await boss.start();
 await startRunner(boss, jobs, {

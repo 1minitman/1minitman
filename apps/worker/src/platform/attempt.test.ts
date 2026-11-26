@@ -118,12 +118,16 @@ describe('runAttempt()', () => {
   });
 
   test('a failure with retries left is retried and not notified', async () => {
-    const { deps, reporter, notifier } = fakeDeps([catalogueRow(throwing.name)]);
+    const { deps, reporter, notifier, logger } = fakeDeps([catalogueRow(throwing.name)]);
     const result = await runAttempt(throwing, attempt({ retryCount: 1, retryLimit: 2 }), deps);
     expect(result).toEqual({ status: 'failed', outcome: 'retry' });
     expect(reporter.captured).toHaveLength(1);
     expect(reporter.captured[0]?.tags.attempt).toBe(1);
     expect(notifier.failures).toHaveLength(0);
+    // Sentry receives the error; the log line carries its label, not its message.
+    expect((reporter.captured[0]?.error as Error).message).toBe('vendor unavailable');
+    expect(logger.lines.find((line) => line.level === 'error')?.fields?.error).toBe('Error');
+    expect(JSON.stringify(logger.lines)).not.toContain('vendor unavailable');
   });
 
   test('the attempt that exhausts the retries raises job.failed (rule 5)', async () => {
@@ -145,6 +149,12 @@ describe('runAttempt()', () => {
     const result = await runAttempt(throwing, attempt({ retryCount: 2, retryLimit: 2 }), deps);
     expect(result.outcome).toBe('exhausted');
     expect(reporter.captured).toHaveLength(2);
+    // The lost notification is reported with the tags of the attempt that exhausted the retries.
+    expect(reporter.captured[1]?.tags).toEqual({
+      job: 'test.throwing',
+      job_id: 'job-1',
+      attempt: 2,
+    });
     expect(logger.lines.at(-1)?.message).toBe('job failure notification not written');
   });
 
@@ -156,7 +166,9 @@ describe('runAttempt()', () => {
     const { deps, reporter, logger } = fakeDeps([catalogueRow(odd.name)]);
     await runAttempt(odd, attempt({ retryLimit: 0 }), deps);
     expect(reporter.captured[0]?.error).toBe('plain string');
-    expect(logger.lines.find((line) => line.level === 'error')?.fields?.error).toBe('plain string');
+    // The log carries a label, never the thrown value; Sentry receives the value itself.
+    expect(logger.lines.find((line) => line.level === 'error')?.fields?.error).toBe('unknown');
+    expect(JSON.stringify(logger.lines)).not.toContain('plain string');
   });
 
   test('a catalogue read error propagates, so the queue retries the attempt', async () => {

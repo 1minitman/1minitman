@@ -1,5 +1,5 @@
 import { afterEach, expect, spyOn, test } from 'bun:test';
-import { createLogger } from './logger';
+import { createLogger, errorLabel } from './logger';
 
 const log = spyOn(console, 'log').mockImplementation(() => undefined);
 const error = spyOn(console, 'error').mockImplementation(() => undefined);
@@ -27,4 +27,14 @@ test('a child logger adds its fields to every line', () => {
     level: 'debug',
     job: 'x.y',
   });
+});
+
+test('errorLabel() gives a driver code or a name, never the message', () => {
+  const quoted = 'invalid input syntax for type uuid: "member@example.com"';
+  const pg = Object.assign(new Error(quoted), { code: '22P02' });
+  expect(errorLabel(pg)).toBe('22P02');
+  expect(errorLabel(new Error(quoted, { cause: { code: 'ECONNREFUSED' } }))).toBe('ECONNREFUSED');
+  expect(errorLabel(new TypeError(quoted))).toBe('TypeError');
+  expect(errorLabel(quoted)).toBe('unknown');
+  expect(errorLabel(null)).toBe('unknown');
 });

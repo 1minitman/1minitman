@@ -1,7 +1,8 @@
 import type { Catalogue } from './catalogue';
 import type { FailureNotifier, JobFailureReason } from './failure-notifier';
 import type { JobContext, JobDefinition } from './job';
-import type { ErrorReporter } from './reporter';
+import { errorLabel } from './logger';
+import type { ErrorReporter, FailureTags } from './reporter';
 
 /** One claimed attempt, as pg-boss hands it over (`includeMetadata`). */
 export interface Attempt {
@@ -31,12 +32,8 @@ export class InvalidPayloadError extends Error {
   override readonly name = 'InvalidPayloadError';
 }
 
-const raiseFailure = async (
-  deps: AttemptDeps,
-  job: string,
-  jobId: string,
-  reason: JobFailureReason,
-) => {
+const raiseFailure = async (deps: AttemptDeps, tags: FailureTags, reason: JobFailureReason) => {
+  const { job, job_id: jobId } = tags;
   try {
     const { notified } = await deps.notifier.jobFailed({ job, jobId, reason });
     deps.context.logger.info('job failure notified', { job, id: jobId, reason, notified });
@@ -45,9 +42,10 @@ const raiseFailure = async (
     deps.context.logger.error('job failure notification not written', {
       job,
       id: jobId,
-      error: error instanceof Error ? error.message : String(error),
+      attempt: tags.attempt,
+      error: errorLabel(error),
     });
-    deps.reporter.capture(error, { job, job_id: jobId, attempt: 0 });
+    deps.reporter.capture(error, tags);
   }
 };
 
@@ -65,7 +63,7 @@ export const runAttempt = async (
 ): Promise<AttemptOutcome> => {
   const { logger } = deps.context;
   const fields = { job: job.name, id: attempt.id, attempt: attempt.retryCount };
-  const tags = { job: job.name, job_id: attempt.id, attempt: attempt.retryCount };
+  const tags: FailureTags = { job: job.name, job_id: attempt.id, attempt: attempt.retryCount };
 
   const row = await deps.catalogue.get(job.name);
   if (!row?.isActive) {
@@ -82,7 +80,7 @@ export const runAttempt = async (
       const error = new InvalidPayloadError(`Invalid payload for ${job.name}: ${paths.join(', ')}`);
       logger.error('job payload rejected', { ...fields, paths });
       deps.reporter.capture(error, tags);
-      await raiseFailure(deps, job.name, attempt.id, 'invalid_payload');
+      await raiseFailure(deps, tags, 'invalid_payload');
       return { status: 'deadletter', outcome: 'invalid_payload' };
     }
     payload = parsed.data;
@@ -96,11 +94,11 @@ export const runAttempt = async (
     logger.error(exhausted ? 'job failed: retries exhausted' : 'job failed: will retry', {
       ...fields,
       retry_limit: attempt.retryLimit,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorLabel(error),
     });
     deps.reporter.capture(error, tags);
     if (!exhausted) return { status: 'failed', outcome: 'retry' };
-    await raiseFailure(deps, job.name, attempt.id, 'retries_exhausted');
+    await raiseFailure(deps, tags, 'retries_exhausted');
     return { status: 'failed', outcome: 'exhausted' };
   }
   logger.info('job done', { ...fields, duration_ms: Math.round(performance.now() - started) });
