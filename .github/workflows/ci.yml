@@ -71,12 +71,16 @@ jobs:
         run: pnpm db:migrate
       - name: Apply database roles (least privilege)
         run: pnpm db:roles
+      - name: Drizzle models match the migrated schema
+        run: pnpm db:lint-schema
       - name: Generated API client is up to date
         run: pnpm contracts:generate && git diff --exit-code packages/contracts
       - name: No breaking API change
         if: github.event_name == 'pull_request'
         run: node scripts/check-contract-breaking.mjs "origin/${{ github.base_ref }}"
       - run: pnpm typecheck
+      # The database behaviour tests (parallel connections on the PostgreSQL service above) fail
+      # instead of skipping when CI is set and a connection URL is missing (GAP-STD01-09).
       - run: pnpm test
       - run: pnpm build
       - name: No server-only settings in client bundles

@@ -12,6 +12,7 @@
     "migrate": "bun --env-file=../../.env.development src/cli/migrate.ts up",
     "status": "bun --env-file=../../.env.development src/cli/migrate.ts status",
     "roles": "bun --env-file=../../.env.development src/cli/roles.ts",
+    "lint:schema": "bun --env-file=../../.env.development src/cli/lint-schema.ts",
     "pull": "bun --env-file=../../.env.development --bun drizzle-kit pull && node scripts/post-pull.mjs",
     "typecheck": "tsc --noEmit",
     "test": "bun --env-file=../../.env.development test"

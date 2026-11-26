@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import postgres from 'postgres';
+import { databaseReady } from './test-env';
 
 // Proves schema change set 0007 (migration 0007_trx_schema_change_set.sql, changes SC-01 to SC-11)
 // on a real database: `pnpm services:up && pnpm db:migrate && pnpm db:roles`.
@@ -12,7 +13,7 @@ const urls = {
   admin: process.env.ADMIN_DATABASE_URL,
   queue: process.env.QUEUE_DATABASE_URL,
 };
-const ready = Object.values(urls).every(Boolean);
+const ready = databaseReady(urls);
 const connect = (url: string | undefined) => postgres(url ?? '', { max: 1, onnotice: () => {} });
 const api = connect(urls.api);
 const worker = connect(urls.worker);

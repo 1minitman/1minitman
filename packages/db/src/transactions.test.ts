@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { sql } from 'drizzle-orm';
 import { createDatabase, type Database } from './client';
+import { databaseReady } from './test-env';
 import {
   TransactionContextError,
   withAdminTx,
@@ -58,7 +59,7 @@ const urls = {
   admin: process.env.ADMIN_DATABASE_URL,
   worker: process.env.WORKER_DATABASE_URL,
 };
-const ready = Object.values(urls).every(Boolean);
+const ready = databaseReady(urls);
 
 const rows = async <T>(tx: Tx, query: ReturnType<typeof sql>) =>
   (await tx.execute(query)) as unknown as T[];

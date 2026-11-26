@@ -17,6 +17,7 @@
     "db:migrate": "pnpm --filter @1minitman/db migrate",
     "db:status": "pnpm --filter @1minitman/db status",
     "db:roles": "pnpm --filter @1minitman/db roles",
+    "db:lint-schema": "pnpm --filter @1minitman/db lint:schema",
     "db:pull": "pnpm --filter @1minitman/db pull",
     "contracts:generate": "turbo run generate --filter @1minitman/contracts",
     "build": "turbo run build",
