@@ -158,13 +158,17 @@ describe.skipIf(!ready)('row-level security context on PostgreSQL', () => {
   });
 
   test('a member cannot write a row in another member’s name', async () => {
-    await expect(
-      withMemberTx(member, a, (tx) =>
-        tx.execute(
-          sql`INSERT INTO blocks (blocker_id, blocked_id, surface) VALUES (${b}, ${a}, 'report')`,
-        ),
+    // Refused by the blocks_own WITH CHECK policy (42501), not by any other constraint.
+    const error = await withMemberTx(member, a, (tx) =>
+      tx.execute(
+        sql`INSERT INTO blocks (blocker_id, blocked_id, surface) VALUES (${b}, ${a}, 'report')`,
       ),
-    ).rejects.toThrow();
+    ).then(
+      () => null,
+      (e: unknown) => e as { cause?: { code?: string; message?: string } },
+    );
+    expect(error?.cause?.code).toBe('42501');
+    expect(error?.cause?.message).toMatch(/row-level security/);
   });
 
   test('an error inside the callback rolls the whole transaction back', async () => {
