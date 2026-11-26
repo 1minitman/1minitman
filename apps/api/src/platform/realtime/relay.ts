@@ -118,10 +118,22 @@ export const createRedisRelay = ({
   const dispatchers = new Map<string, (message: string, channel: string) => void>();
   let connections = 0;
 
+  // A first join's SUBSCRIBE still in flight; a later join on the channel waits for it.
+  const subscribing = new Map<string, Promise<void>>();
+
   const subscribe = async (channel: string) => {
     const dispatcher = (message: string) => listeners.dispatch(channel, message);
     dispatchers.set(channel, dispatcher);
-    await subscriber.subscribe(channel, dispatcher);
+    try {
+      // 1MM-STD-16 section 6: the client queues commands while it reconnects, so without a
+      // timeout a join (and the socket's handshake) would wait for as long as Redis is down.
+      await withTimeout(subscriber.subscribe(channel, dispatcher), timeoutMs, 'realtime subscribe');
+    } catch (error) {
+      // A SUBSCRIBE that lands after the timeout must not stay behind; UNSUBSCRIBE queues after it.
+      if (dispatchers.get(channel) === dispatcher) dispatchers.delete(channel);
+      await subscriber.unsubscribe(channel).catch(() => {});
+      throw error;
+    }
   };
   const unsubscribe = async (channel: string) => {
     dispatchers.delete(channel);
@@ -149,12 +161,16 @@ export const createRedisRelay = ({
 
   return {
     async join(channel, listener) {
-      if (!listeners.add(channel, listener)) return;
+      let pending = subscribing.get(channel);
+      if (listeners.add(channel, listener)) {
+        pending = subscribe(channel).finally(() => subscribing.delete(channel));
+        subscribing.set(channel, pending);
+      }
       try {
-        await subscribe(channel);
+        await pending;
       } catch (error) {
+        // Every listener that waited on the failed SUBSCRIBE leaves, so none is left unserved.
         listeners.remove(channel, listener);
-        dispatchers.delete(channel);
         throw error;
       }
     },

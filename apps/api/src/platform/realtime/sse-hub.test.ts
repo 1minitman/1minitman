@@ -188,6 +188,19 @@ describe('admin SSE hub', () => {
     await res.body?.cancel();
   });
 
+  test('close() ends every open stream, so a shutdown is not held open', async () => {
+    const { hub, relay, app } = setup();
+    const first = reader(await app.request('/stream/adm-1'));
+    const second = reader(await app.request('/stream/adm-2'));
+    expect(hub.streamCount()).toBe(2);
+    hub.close();
+    await Bun.sleep(5);
+    expect(hub.streamCount()).toBe(0);
+    expect(relay.channels()).toEqual([]);
+    expect(await first.read(1, 50)).toEqual([]);
+    expect(await second.read(1, 50)).toEqual([]);
+  });
+
   test('a subscribe failure is a 503 problem, so the console falls back to polling', async () => {
     const memory = createMemoryRelay(logger);
     let joins = 0;
@@ -208,9 +221,11 @@ describe('admin SSE hub', () => {
     expect(hub.streamCount()).toBe(0);
   });
 
-  test('publishing an event that breaks the envelope throws', () => {
+  test('publishing an event that breaks the envelope throws', async () => {
     const { hub } = setup();
-    expect(hub.publishToAll({ type: 'Bad Type', data: {}, permission: null })).rejects.toThrow();
+    await expect(
+      hub.publishToAll({ type: 'Bad Type', data: {}, permission: null }),
+    ).rejects.toThrow();
   });
 });
 
@@ -233,7 +248,7 @@ describe('memory relay', () => {
 describe('withTimeout', () => {
   test('passes a prompt result through and rejects a late one', async () => {
     expect(await withTimeout(Promise.resolve(7), 50, 'fast')).toBe(7);
-    expect(withTimeout(Bun.sleep(50), 5, 'slow call')).rejects.toThrow(
+    await expect(withTimeout(Bun.sleep(50), 5, 'slow call')).rejects.toThrow(
       'slow call timed out after 5 ms',
     );
   });

@@ -71,6 +71,8 @@ export const createAdminStreamHub = ({
   now = () => new Date(),
 }: AdminStreamHubDeps) => {
   let open = 0;
+  /** Ends each open stream; `close()` uses it so a shutdown is not held open by a tab. */
+  const enders = new Set<() => void>();
 
   const publish = async (channel: string, event: AdminEventInput) =>
     relay.publish(
@@ -86,6 +88,13 @@ export const createAdminStreamHub = ({
     publishToAll: (event: AdminEventInput) => publish(ADMIN_ALL_CHANNEL, event),
     /** Streams on this instance (for tests and metrics). */
     streamCount: () => open,
+    /**
+     * Drain on shutdown: ends every stream on this instance so the server can stop (Bun waits for
+     * open responses); the console reconnects to another replica or falls back to polling.
+     */
+    close() {
+      for (const finish of [...enders]) finish();
+    },
 
     /**
      * The SSE response for one tab. Subscribes before the response starts, so a Redis failure is
@@ -97,6 +106,7 @@ export const createAdminStreamHub = ({
       let write: ((event: AdminChannelMessage) => Promise<void>) | undefined;
       let end: (() => void) | undefined;
       const ended = new Promise<void>((resolve) => (end = resolve));
+      const finish = () => end?.();
 
       const deliver = async (text: string) => {
         let event: AdminChannelMessage;
@@ -144,6 +154,7 @@ export const createAdminStreamHub = ({
       }
 
       open += 1;
+      enders.add(finish);
       // Bun closes a request idle for 10 s by default; a stream is idle by design between events,
       // so its own heartbeat replaces that timeout.
       const server: unknown = c.env;
@@ -165,6 +176,7 @@ export const createAdminStreamHub = ({
           clearInterval(heartbeat);
           write = undefined;
           open -= 1;
+          enders.delete(finish);
           await leaveAll();
         }
       });

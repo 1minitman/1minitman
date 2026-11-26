@@ -524,9 +524,9 @@ describe('back-pressure and limits', () => {
     expect(gateway.websocket.sendPings).toBe(false);
   });
 
-  test('publishing a frame that is not a server frame throws', () => {
+  test('publishing a frame that is not a server frame throws', async () => {
     const { gateway } = setup();
-    expect(gateway.publishToUser(MEMBER_A, { type: 'Bad', data: {} })).rejects.toThrow();
+    await expect(gateway.publishToUser(MEMBER_A, { type: 'Bad', data: {} })).rejects.toThrow();
   });
 });
 

@@ -53,6 +53,7 @@ const redisSubscriber = new RedisClient(env.REDIS_URL);
 const rateLimitPolicies = createPolicyStore(postgresPolicySource(database), logger);
 await rateLimitPolicies.reload();
 const stopPolicyReload = await subscribeToPolicyChanges(redisSubscriber, rateLimitPolicies, logger);
+const rateLimits = { policies: rateLimitPolicies, limiter: createRedisRateLimiter(redis) };
 
 // Realtime (MOD-00-API-07): one relay over its own subscriber connection, shared by the member
 // WebSocket gateway and the admin SSE hub. Token checks deny by default until MOD-03; the admin
@@ -68,6 +69,8 @@ const gateway = createWebSocketGateway({
   denyList: memberAuthPorts.denyList,
   relay,
   registry: createRedisConnectionRegistry(redis),
+  // Feature events that name a `rateLimitPolicy` (MOD-08 `messages.user`) consume it here.
+  rateLimits,
   logger,
 });
 const adminStream = createAdminStreamHub({
@@ -84,7 +87,7 @@ const app = createApp({
     redis: redisProbe(redis),
   }),
   surfaces: {
-    rateLimits: { policies: rateLimitPolicies, limiter: createRedisRateLimiter(redis) },
+    rateLimits,
     auth: {
       // Deny by default until MOD-03 supplies token verification and MOD-01 the admin checks.
       member: createMemberGuards(memberAuthPorts),
@@ -105,7 +108,9 @@ logger.info('api listening', { url: `http://localhost:${server.port}`, docs: '/d
 
 const shutdown = async (signal: string) => {
   logger.info('shutting down', { signal });
-  // Drain: sockets close with 1001 so clients reconnect to another replica.
+  // Drain: admin streams end and sockets close with 1001 so clients reconnect to another
+  // replica; an open stream would otherwise keep server.stop() waiting.
+  adminStream.close();
   await gateway.close();
   await server.stop();
   await stopPolicyReload().catch(() => {});
