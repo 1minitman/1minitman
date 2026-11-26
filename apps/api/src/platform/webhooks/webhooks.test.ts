@@ -119,14 +119,17 @@ describe('webhook intake: rule 11 and 1MM-STD-13 §4.7', () => {
     const vendor = {
       ...createFakeVendor({ secret: SECRET, path: 'fake' }),
       verify: () => {
-        throw new Error('key not loaded');
+        throw new TypeError('no signature matches header t=1,v1=abc for body {"phone":"x"}');
       },
     };
     const { app, enqueued, lines } = setup({ vendor });
     const res = await post(app, event('evt_throw'));
     expect(res.status).toBe(401);
     expect(enqueued).toHaveLength(0);
-    expect(lines.some((l) => l.level === 'error')).toBe(true);
+    // Logged with a payload-free label: a vendor library's message can quote the header or body.
+    const logged = lines.find((l) => l.message === 'webhook signature check threw');
+    expect(logged?.fields).toEqual({ provider: 'carrier', error: 'TypeError' });
+    expect(JSON.stringify(lines)).not.toContain('phone');
   });
 
   test('a duplicate (provider, event_id) is acknowledged with the same 200 and ignored', async () => {
@@ -211,12 +214,20 @@ describe('webhook intake: rule 11 and 1MM-STD-13 §4.7', () => {
   });
 
   test('an enqueue failure still acknowledges: the row stays pending for webhooks.retry', async () => {
-    const queue: WebhookQueue = { enqueue: () => Promise.reject(new Error('queue down')) };
+    const failure = Object.assign(new Error('insert job failed: {"phone":"x"}'), { code: '57P01' });
+    const queue: WebhookQueue = { enqueue: () => Promise.reject(failure) };
     const { app, store, lines } = setup({ queue });
     const res = await post(app, event('evt_q'));
     expect(res.status).toBe(200);
-    expect([...store.rows.values()][0]?.status).toBe('received');
-    expect(lines.some((l) => l.message.startsWith('webhook enqueue failed'))).toBe(true);
+    const row = [...store.rows.values()][0];
+    expect(row?.status).toBe('received');
+    const logged = lines.find((l) => l.message.startsWith('webhook enqueue failed'));
+    expect(logged?.fields).toEqual({
+      provider: 'carrier',
+      webhook_event_id: row?.id,
+      error: '57P01',
+    });
+    expect(JSON.stringify(lines)).not.toContain('phone');
   });
 
   test('the same event id from two providers is two events', async () => {

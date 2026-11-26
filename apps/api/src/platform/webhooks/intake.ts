@@ -69,10 +69,11 @@ const verifySafely = async (
   try {
     return (await vendor.verify(request)) === true;
   } catch (error) {
-    // Fail closed: a check that cannot decide is an invalid signature.
+    // Fail closed: a check that cannot decide is an invalid signature. Only a payload-free label
+    // is logged: a vendor library's message can quote the header or the body.
     logger.error('webhook signature check threw', {
       provider: vendor.provider,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorCode(error),
     });
     return false;
   }
@@ -87,6 +88,7 @@ const parseSafely = (vendor: WebhookVendor, request: WebhookRequest) => {
     if (parsed.payload === undefined) return null;
     return parsed;
   } catch {
+    // Designed outcome: a parser that throws on the body means the body is not a readable event.
     return null;
   }
 };
@@ -170,7 +172,8 @@ export const createWebhookIntake = ({ store, queue, logger }: WebhookIntakeDeps)
         logger.error('webhook enqueue failed; the row stays pending', {
           provider: vendor.provider,
           webhook_event_id: event.id,
-          error: error instanceof Error ? error.message : String(error),
+          // The label only: a queue driver's message can carry the job payload.
+          error: errorCode(error),
         });
       }
       return { kind: 'accepted', event };

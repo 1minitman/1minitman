@@ -171,6 +171,44 @@ describe.skipIf(!ready)('writeOutbox() on PostgreSQL', () => {
     });
   });
 
+  test('the same dedupe key twice in one call writes one row', async () => {
+    await rolledBack(async (tx) => {
+      const userId = await insertUser(tx);
+      const n: OutboxNotification = {
+        recipient: { kind: 'member', userId },
+        channel: 'in_app',
+        templateCode: 'N01',
+        locale: 'en',
+        dedupeKey: 'batch:1',
+      };
+      const result = await writeOutbox(tx, [n, n]);
+      expect(result.ids).toHaveLength(1);
+      expect(result.deduplicated).toBe(1);
+    });
+  });
+
+  test('a repeated dedupe key for the same non-member address is dropped (uq_notifications_recipient_dedupe)', async () => {
+    await rolledBack(async (tx) => {
+      const n = (hashByte: number): OutboxNotification => ({
+        recipient: {
+          kind: 'newsletter',
+          channel: 'email',
+          addressEncrypted: new Uint8Array([9]),
+          addressHash: new Uint8Array(32).fill(hashByte),
+        },
+        templateCode: 'N01',
+        locale: 'en',
+        dedupeKey: 'digest:2026-11',
+      });
+      const first = await writeOutbox(tx, n(11));
+      const second = await writeOutbox(tx, [n(11), n(12)]);
+      expect(first).toEqual({ ids: [expect.any(String)], deduplicated: 0 });
+      // Another address with the same key is another recipient.
+      expect(second.ids).toHaveLength(1);
+      expect(second.deduplicated).toBe(1);
+    });
+  });
+
   test('a non-member recipient is stored encrypted with its hash and source row', async () => {
     await rolledBack(async (tx) => {
       const hash = new Uint8Array(32).fill(7);
