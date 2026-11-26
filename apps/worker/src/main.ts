@@ -1,4 +1,4 @@
-import { createDatabase } from '@1minitman/db';
+import { assertAppEnv, createDatabase } from '@1minitman/db';
 import { PgBoss } from 'pg-boss';
 import { loadEnv } from './config/env';
 import { jobs } from './jobs';
@@ -18,6 +18,8 @@ const database = createDatabase({
   max: 4,
   applicationName: 'worker',
 });
+// TRX-056: in production the worker login must carry app.env = 'production' as a role setting.
+await assertAppEnv(database);
 // pg-boss keeps its tables in its own `pgboss` schema, on its own connection and database role.
 // Job payloads are stored there in plain text: pass ids, never secrets or personal data.
 // The schema itself is created by `pnpm db:roles`; the queue role may not create schemas.
