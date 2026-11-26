@@ -13,6 +13,8 @@ const log: JobContext['log'] = (message, fields) =>
 
 const database = createDatabase({
   url: env.WORKER_DATABASE_URL,
+  surface: 'worker',
+  appEnv: env.APP_ENV,
   max: 4,
   applicationName: 'worker',
 });

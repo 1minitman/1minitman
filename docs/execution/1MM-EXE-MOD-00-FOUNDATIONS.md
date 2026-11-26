@@ -539,6 +539,7 @@ Dispositions are recorded in [1MM-LOG-03](../1MM-LOG-03-TECHNICAL-REFERENCE-EXTE
 
 ## Change log
 
-| Version | Date        | Change                                    |
-| ------- | ----------- | ----------------------------------------- |
-| 1.0     | 24 Nov 2026 | First issue, written against schema v3.4. |
+| Version | Date        | Change                                                                     |
+| ------- | ----------- | -------------------------------------------------------------------------- |
+| 1.0     | 24 Nov 2026 | First issue, written against schema v3.4.                                  |
+| 1.1     | 26 Nov 2026 | `MOD-00-DB-01` built: transaction helpers, `app.env`, admin pool (P-0008). |

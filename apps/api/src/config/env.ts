@@ -16,7 +16,10 @@ const EnvSchema = z.object({
   APP_ENV: EnvironmentSchema.default('local'),
   APP_VERSION: z.string().default('0.1.0'),
   API_PORT: z.coerce.number().int().default(4000),
+  /** Member surface (/v1): the app_api login, subject to row-level security. */
   DATABASE_URL: z.url(),
+  /** Admin surface (/admin/v1): the app_admin_api login, bypasses row-level security. */
+  ADMIN_DATABASE_URL: z.url(),
   REDIS_URL: z.url(),
   /** Browser origins allowed to call the API (admin console, web app, website). */
   CORS_ALLOWED_ORIGINS: csv,

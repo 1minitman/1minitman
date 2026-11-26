@@ -159,26 +159,29 @@ adds one line.
 
 ## 3. Which process connects as which role
 
-| Process                             | Variable                                                 | Role            | Connection                                                                       | State                                                                                                            |
-| ----------------------------------- | -------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| API, member and public surfaces     | `DATABASE_URL`                                           | `app_api`       | Pooled at runtime (Neon pooler in production)                                    | In place: `apps/api/src/main.ts` opens one pool, `applicationName: 'api'`, default `max` 10                      |
-| API, admin surface                  | `ADMIN_DATABASE_URL`                                     | `app_admin_api` | Pooled                                                                           | **Planned**: the variable is in `.env.example` but not in `apps/api/src/config/env.ts`; wiring is `MOD-00-DB-01` |
-| Worker jobs                         | `WORKER_DATABASE_URL`                                    | `app_worker`    | Pooled                                                                           | In place: `applicationName: 'worker'`, `max` 4                                                                   |
-| Worker queue (pg-boss)              | `QUEUE_DATABASE_URL`                                     | `app_queue`     | **Direct**, not pooled                                                           | In place: `createSchema: false`, `application_name: 'worker-queue'`                                              |
-| `pnpm db:migrate`, `pnpm db:status` | `DATABASE_MIGRATION_URL`, falling back to `DATABASE_URL` | schema owner    | **Direct**: the runner holds a session advisory lock, which a pooler cannot keep | In place                                                                                                         |
-| `pnpm db:roles`                     | `DATABASE_MIGRATION_URL` only                            | schema owner    | Direct                                                                           | In place                                                                                                         |
-| Analytics tools                     | none defined                                             | `app_readonly`  | –                                                                                | Planned: no variable and no login exist yet                                                                      |
+| Process                             | Variable                                                 | Role            | Connection                                                                       | State                                                                                                                                                            |
+| ----------------------------------- | -------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API, member and public surfaces     | `DATABASE_URL`                                           | `app_api`       | Pooled at runtime (Neon pooler in production)                                    | In place: `apps/api/src/main.ts` opens one pool, `applicationName: 'api'`, default `max` 10                                                                      |
+| API, admin surface                  | `ADMIN_DATABASE_URL`                                     | `app_admin_api` | Pooled                                                                           | In place (`MOD-00-DB-01`): validated in `apps/api/src/config/env.ts`; `main.ts` opens a second pool, `surface: 'admin'`, `applicationName: 'api-admin'`, `max` 5 |
+| Worker jobs                         | `WORKER_DATABASE_URL`                                    | `app_worker`    | Pooled                                                                           | In place: `applicationName: 'worker'`, `max` 4                                                                                                                   |
+| Worker queue (pg-boss)              | `QUEUE_DATABASE_URL`                                     | `app_queue`     | **Direct**, not pooled                                                           | In place: `createSchema: false`, `application_name: 'worker-queue'`                                                                                              |
+| `pnpm db:migrate`, `pnpm db:status` | `DATABASE_MIGRATION_URL`, falling back to `DATABASE_URL` | schema owner    | **Direct**: the runner holds a session advisory lock, which a pooler cannot keep | In place                                                                                                                                                         |
+| `pnpm db:roles`                     | `DATABASE_MIGRATION_URL` only                            | schema owner    | Direct                                                                           | In place                                                                                                                                                         |
+| Analytics tools                     | none defined                                             | `app_readonly`  | –                                                                                | Planned: no variable and no login exist yet                                                                                                                      |
 
 Rules:
 
 1. One pool per role. Code never switches role inside a connection.
 2. No running service is given `DATABASE_MIGRATION_URL`. It exists in the release step only.
-3. `apps/api` validates `DATABASE_URL` at start-up; the worker validates both of its URLs. A
-   missing URL stops the process.
+3. `apps/api` validates `DATABASE_URL` and `ADMIN_DATABASE_URL` at start-up; the worker validates
+   both of its URLs. A missing URL stops the process.
 4. The fallback from `DATABASE_MIGRATION_URL` to `DATABASE_URL` in `src/cli/migrate.ts` is safe:
    as `app_api` the first DDL statement is refused. It is still wrong in a hosted release step,
    which must set the migration URL explicitly.
 5. Every connection runs in UTC (`client.ts` sets `TimeZone`), which the schema assumes.
+6. Every connection sends `app.env` (from `APP_ENV`) as a startup parameter, and the three
+   transaction helpers set it again with `set_config(..., true)` so the value holds even through a
+   pooler that drops startup parameters (GAP-DB05-06 stays open for the per-login settings).
 
 ## 4. Row-level security
 
@@ -186,9 +189,11 @@ Rules:
 
 `app_current_user_id()` returns `nullif(current_setting('app.user_id', true), '')::uuid` [SQL
 section 0]. The member API sets `SET LOCAL app.user_id = '<uuid>'` at the start of each
-transaction [TR §8.1], [DD §13 RLS]. Planned in `MOD-00-DB-01` as `withMemberTx(memberId, fn)`:
-one transaction on the `app_api` pool, the setting first, and no member query outside it. Nothing
-in `apps/api/src` sets it yet.
+transaction [TR §8.1], [DD §13 RLS]. Built in `MOD-00-DB-01` as `withMemberTx(database, memberId,
+fn)` in `packages/db/src/transactions.ts`: one transaction on the `app_api` pool, the setting
+first, and no member query outside it. It refuses a pool that is not the member pool and a member
+id that is not a UUID. `withAdminTx` and `withWorkerTx` refuse any other pool and clear
+`app.user_id` for their transaction.
 
 Rules for the implementation:
 
@@ -527,7 +532,7 @@ audit log.
 | Exports are rows, built by a job, expire, and need approval where the permission requires it | [SQL comment on `admin_exports`]  | `admin_exports`, `admin_approvals`                                                                                                               |
 | Biometric templates and liveness video are never returned, only counts                       | [ADM A36]                         | –                                                                                                                                                |
 
-Rules for the admin data layer (planned as `withAdminTx` in `MOD-00-DB-01`):
+Rules for the admin data layer (`withAdminTx`, built in `MOD-00-DB-01`):
 
 1. The reveal endpoint is the only code path that selects the clear value of a masked field. List
    and detail queries select masked projections, so a serialisation mistake cannot leak.
@@ -661,3 +666,4 @@ GAP-DB02-01 and GAP-DB04-04 (non-transactional migrations, one change).
 | ------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v1.0    | 24 Nov 2026 | First issue: role model, connection map, the 14 policies and four findings, definer functions, ledgers, connection rules, monitoring, checklist                                                                                                                                                                                         |
 | v1.1    | 24 Nov 2026 | Migration `0007`: findings 1 and 2 marked fixed (matching functions as definer with an actor guard; `profiles_read` denies without a member context; `is_blocked_pair()` hardened); six definer functions; rule 6 extended; `change-set-0007.test.ts` added to the test section. Per-module row-level security (GAP-DB05-01) still open |
+| v1.2    | 26 Nov 2026 | `MOD-00-DB-01`: `ADMIN_DATABASE_URL` wired, `withMemberTx`, `withAdminTx`, `withWorkerTx` and the `app.env` connection setting in place (sections 3, 4.1, 11)                                                                                                                                                                           |

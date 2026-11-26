@@ -10,7 +10,20 @@ import { createRedisRateLimiter } from './platform/rate-limit';
 const env = loadEnv();
 const logger = createLogger(env.LOG_LEVEL, { service: 'api', env: env.APP_ENV });
 
-const database = createDatabase({ url: env.DATABASE_URL, applicationName: 'api' });
+const database = createDatabase({
+  url: env.DATABASE_URL,
+  surface: 'member',
+  appEnv: env.APP_ENV,
+  applicationName: 'api',
+});
+// The admin surface has its own pool and login; admin modules take it through withAdminTx.
+const adminDatabase = createDatabase({
+  url: env.ADMIN_DATABASE_URL,
+  surface: 'admin',
+  appEnv: env.APP_ENV,
+  max: 5,
+  applicationName: 'api-admin',
+});
 const redis = new RedisClient(env.REDIS_URL);
 
 const app = createApp({
@@ -30,7 +43,7 @@ const shutdown = async (signal: string) => {
   logger.info('shutting down', { signal });
   await server.stop();
   redis.close();
-  await database.close();
+  await Promise.all([database.close(), adminDatabase.close()]);
   process.exit(0);
 };
 process.on('SIGINT', () => void shutdown('SIGINT'));

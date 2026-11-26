@@ -5,7 +5,7 @@ import { featureFlags, remoteConfig } from './index';
 
 // Integration tests: need the local database (`pnpm services:up && pnpm db:migrate`).
 const url = process.env.DATABASE_URL;
-const database = url ? createDatabase({ url, max: 1, applicationName: 'db-tests' }) : null;
+const database = url ? createDatabase({ url, surface: 'member', appEnv: 'local', max: 1, applicationName: 'db-tests' }) : null;
 afterAll(() => database?.close());
 
 describe.skipIf(!database)('schema v3.4 seeds, read through the models', () => {
