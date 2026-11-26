@@ -69,6 +69,10 @@ accepting the default is a valid answer.
 
 These seven are enough to start MOD-00. Do **not** try to answer all 51 now.
 
+**Update 26 Nov 2026:** all seven are answered (DEC-001 awaits the lawyer's confirmation), and the
+rest of LOG-04 and LOG-03 §4 is decided except the items in
+[1MM-DEFERRED-GO-LIVE-DECISIONS](1MM-DEFERRED-GO-LIVE-DECISIONS.md), which lists what is still owed before go-live.
+
 ### Step 4 · Line up the decisions that block later modules
 
 Work reaches these in order. Answer each group before its module's API stage begins; the master
@@ -176,6 +180,7 @@ Agents write code, tests, documents and pull requests. These stay with you:
 
 ## Change log
 
-| Version | Date        | Change        |
-| ------- | ----------- | ------------- |
-| v1.0    | 25 Nov 2026 | First version |
+| Version | Date        | Change                                                                        |
+| ------- | ----------- | ----------------------------------------------------------------------------- |
+| v1.1    | 26 Nov 2026 | Step 3 notes that the start decisions are answered; link to the deferred list |
+| v1.0    | 25 Nov 2026 | First version                                                                 |

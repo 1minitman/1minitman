@@ -291,7 +291,7 @@ ruling R10):
 
 Templates other modules have asked for and the catalogue lacks: one-time-code and "sign-in method
 added" (GAP-MOD03-07), media rejected and prompt removed (GAP-MOD04-06), ban and unban (GAP-MOD05-04),
-staff e-mail (GAP-MOD01-07). When the owner accepts them they are added here by migration with codes
+staff e-mail (GAP-MOD01-07, accepted by DEC-008 on 26 Nov 2026: invite and security alert). When the owner accepts them they are added here by migration with codes
 from N37; A25's "new templates: code N23–N99" [ADM A25] is read as N37–N99.
 
 ### 4.3 Rules the API must enforce

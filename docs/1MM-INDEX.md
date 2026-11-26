@@ -126,16 +126,17 @@ Every derived document is named `1MM-<SERIES>-<NN>-<UPPER-KEBAB-TITLE>.md`.
 
 ## Other documents
 
-| Document                                                           | What it is                                                                      |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| [1MM-PLANNER](1MM-PLANNER.md)                                      | Where to start: decisions needed, reading order and the first stage with agents |
-| [README](../README.md)                                             | Project overview                                                                |
-| [AGENTS](../AGENTS.md)                                             | Entry point for coding agents (`CLAUDE.md` imports it)                          |
-| [CONTRIBUTING](../CONTRIBUTING.md)                                 | Contribution essentials                                                         |
-| [SECURITY](../SECURITY.md)                                         | How to report a vulnerability                                                   |
-| [USAGE](USAGE.md)                                                  | How the parts fit, how to run them and where each key and account comes from    |
-| [Schema data dictionary](../packages/db/SCHEMA_DATA_DICTIONARY.md) | Every table by domain                                                           |
-| [Migrations README](../packages/db/migrations/README.md)           | Migration file rules                                                            |
+| Document                                                            | What it is                                                                                              |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [1MM-PLANNER](1MM-PLANNER.md)                                       | Where to start: decisions needed, reading order and the first stage with agents                         |
+| [1MM-DEFERRED-GO-LIVE-DECISIONS](1MM-DEFERRED-GO-LIVE-DECISIONS.md) | Reminder list of what the owner still owes before go-live: deferred values, legal confirmations, spends |
+| [README](../README.md)                                              | Project overview                                                                                        |
+| [AGENTS](../AGENTS.md)                                              | Entry point for coding agents (`CLAUDE.md` imports it)                                                  |
+| [CONTRIBUTING](../CONTRIBUTING.md)                                  | Contribution essentials                                                                                 |
+| [SECURITY](../SECURITY.md)                                          | How to report a vulnerability                                                                           |
+| [USAGE](USAGE.md)                                                   | How the parts fit, how to run them and where each key and account comes from                            |
+| [Schema data dictionary](../packages/db/SCHEMA_DATA_DICTIONARY.md)  | Every table by domain                                                                                   |
+| [Migrations README](../packages/db/migrations/README.md)            | Migration file rules                                                                                    |
 
 ## Sources that are not in this repository
 
@@ -143,6 +144,7 @@ The product specification (Technical Reference, admin and website specifications
 
 ## Change log
 
-| Version | Date        | Change                              |
-| ------- | ----------- | ----------------------------------- |
-| v1.0    | 24 Nov 2026 | First map of the documentation set. |
+| Version | Date        | Change                                |
+| ------- | ----------- | ------------------------------------- |
+| v1.1    | 26 Nov 2026 | Added 1MM-DEFERRED-GO-LIVE-DECISIONS. |
+| v1.0    | 24 Nov 2026 | First map of the documentation set.   |

@@ -3,7 +3,7 @@
 |              |                                                                                                                                                                                                                                                               |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Document** | 1MM-LOG-04                                                                                                                                                                                                                                                    |
-| **Status**   | Running log · started 24 Nov 2026 · v1.0                                                                                                                                                                                                                      |
+| **Status**   | Running log · started 24 Nov 2026 · v1.1                                                                                                                                                                                                                      |
 | **Audience** | The owner and the people who answer for the owner (lawyer, design, trust-and-safety lead); engineers and coding agents                                                                                                                                        |
 | **Owner**    | Engineering lead (code owners)                                                                                                                                                                                                                                |
 | **Sources**  | The "Gaps raised" tables of every document under `docs/execution/`, `docs/standards/`, `docs/database/` and `docs/resources/`; the repository as it stands on 24 Nov 2026; [TR], [SQL], [OD-nn], [ADM], [WEB], [INV], [BG], [UF]                              |
@@ -58,7 +58,7 @@ Repository follow-ups by size: 39 small, 20 medium, 1 large.
 ## Part A · Owner decisions needed
 
 Ordered by when the execution sequence (MOD-00 to MOD-19) reaches the blocked work. "Now" means
-the question is already live. All entries are **Open**.
+the question is already live. Each entry's **Status** line shows whether it is Open or Answered.
 
 ### A.1 Overview
 
@@ -127,7 +127,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Nothing in the build. Accepting outside contributions waits for it ([1MM-STD-08](standards/1MM-STD-08-CONTRIBUTING.md) §9).
 - **Who answers:** Owner; needs the lawyer's confirmation
 - **Gaps:** GAP-STD05-01
-- **Status:** Open
+- **Answer:** (a), all rights reserved; default applied by the owner, 26 Nov 2026. The `LICENSE` file and the README Licence section follow once the lawyer confirms.
+- **Status:** Answered · awaiting the lawyer's confirmation
 
 #### Needed by MOD-00
 
@@ -138,7 +139,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-00-API-03` (rate-limit policy loader, lockouts)
 - **Who answers:** Owner (engineering lead may answer)
 - **Gaps:** GAP-STD16-04
-- **Status:** Open
+- **Answer:** (a), fail closed on `otp.verify.sms`, `otp.verify.email`, `login.account` and `admin.login`; fail open for every other policy. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-003** · Which error-tracking set-up do the five apps use, given that the free Sentry plan is for a single user?
 
@@ -147,7 +149,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-00-API-09`, `MOD-00-OPS-06`, `MOD-19-OPS-04`
 - **Who answers:** Owner
 - **Gaps:** GAP-RES01-02
-- **Status:** Open
+- **Answer:** (1), Sentry's free plan with alerts to the shared alert channel, moving to the team plan before the private beta; the organisation is created in the EU region. Default applied by the owner, 26 Nov 2026. The paid-tier line in [TR §4.3] is added by the owner in the private spec pack.
+- **Status:** Answered
 
 **DEC-004** · Are the coverage floors and the flaky-test policy proposed in the testing strategy the ones CI should enforce?
 
@@ -156,7 +159,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Enforcing coverage in CI (`MOD-00-API-01`, `MOD-00-ADM-02`, `MOD-00-MOB-01`)
 - **Who answers:** Owner or engineering lead
 - **Gaps:** GAP-STD01-11
-- **Status:** Open
+- **Answer:** (a), the floors in [1MM-STD-01](standards/1MM-STD-01-TESTING-STRATEGY.md) §4.1 and the flake policy in §4.3 as written. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-005** · Do phones support landscape?
 
@@ -165,7 +169,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** [1MM-STD-03](standards/1MM-STD-03-MOBILE-BUILD-STRATEGY.md) §3.3; the orientation setting in `MOD-00-MOB-01`
 - **Who answers:** Owner, with design
 - **Gaps:** GAP-STD03-07
-- **Status:** Open
+- **Answer:** (a), phones portrait only except full-screen media and calls; tablets rotate freely. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-006** · What does the "Help" item in the admin console's top bar open, given that the admin spec it points to is private and not hosted?
 
@@ -174,7 +179,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** One top-bar item in A04 (`MOD-00-ADM-02`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD00-08
-- **Status:** Open
+- **Answer:** (b), chosen by the owner, 26 Nov 2026. The Help item is a fixed console route, `/support/help` (the A27 help-centre list, [1MM-EXE-MOD-14](execution/1MM-EXE-MOD-14-SUPPORT-AND-HELP.md) §2), opened on staff-audience articles. `help_articles` has no audience column, so the staff-only filter is raised as GAP-MOD00-14 (TRX-108, awaiting owner). Until A27 and that filter exist (MOD-14), `MOD-00-ADM-02` ships the item hidden; board change UIU-035.
+- **Status:** Answered
 
 **DEC-007** · Are over-the-air updates code-signed from the first public build? Signing needs a paid Expo plan tier, while the hosting decisions prefer free tiers [OD-06].
 
@@ -183,7 +189,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Update configuration in `MOD-00-MOB-01`; must be settled before the first public build (MOD-19)
 - **Who answers:** Owner
 - **Gaps:** GAP-STD19-04
-- **Status:** Open
+- **Answer:** (a), take the Expo plan that allows update code signing before the first public build and sign every update. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-01
 
@@ -194,7 +201,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Invite e-mail in `MOD-01-API-08`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD01-07
-- **Status:** Open
+- **Answer:** (1), extend the outbox with recipient kind `admin` and seed two staff templates (invite, security alert) from code N37 on. Default applied by the owner, 26 Nov 2026. Schema part recorded as TRX-109.
+- **Status:** Answered
 
 **DEC-009** · Which outside services supply (a) the country, city and network of an IP address for the impossible-travel rule and (b) the breached-password check?
 
@@ -203,7 +211,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Alert rules in `MOD-01-API-09`; the password check in `MOD-03-API-01`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD01-08
-- **Status:** Open
+- **Answer:** Cloudflare's visitor-location request headers for country, city and network; one k-anonymity breached-password range API shared by the admin and member APIs. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-010** · Is the permission scope kind `own` used at launch?
 
@@ -212,7 +221,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Nothing
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD01-12
-- **Status:** Open
+- **Answer:** (a), scope kind `own` is not used at launch and the API refuses it. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-02
 
@@ -223,7 +233,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** OB2 (`MOD-02-MOB-03`), W04 (`MOD-02-WEB-01`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD02-06
-- **Status:** Open
+- **Answer:** (a), separate switches: app locales from `languages.is_app_locale` plus flag `locale.<code>` (`en` always on); website locales from `site_settings.locales[].enabled`. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-012** · Which record is the authority for maintenance mode: `maintenance_windows` or `site_settings.maintenance`?
 
@@ -232,7 +243,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-02-API-03`, `MOD-02-API-04`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD02-08
-- **Status:** Open
+- **Answer:** (a), `maintenance_windows` is the authority for the app, the web app and API read-only mode; `site_settings.maintenance` is the website's own switch; `GET /public/v1/config` reports maintenance when either is active for `web`; OB1 links to `maintenance_windows.status_page_url`. Default applied by the owner, 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-013** · How are the admin console's own strings managed, given that the console is English only but the owner requires its constants to be admin-managed?
 
@@ -241,7 +253,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-02-ADM-01` onwards
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD02-10
-- **Status:** Open
+- **Answer:** (a), console English only, strings in `i18n_strings` under `admin.` (locale `en`), edited in A25. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-014** · In French, are prices written in the brand format (`$2.50`) or in French locale format?
 
@@ -250,7 +263,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** The French launch set; not needed while `locale.fr` is off
 - **Who answers:** Owner, with the French reviewer
 - **Gaps:** GAP-STD17-02
-- **Status:** Open
+- **Answer:** (a), brand format (`$2.50`) in every locale until `locale.fr` is turned on for the app; the French reviewer re-checks before that switch. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-03
 
@@ -261,7 +275,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-03-API-01`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD03-11
-- **Status:** Open
+- **Answer:** (a), length minimum plus breached-password check only, no composition rule (current NIST SP 800-63B practice); board text change is UIU-036. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-016** · Does version 1 offer the optional OLED theme that the tokens define?
 
@@ -270,7 +285,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** D17 theme row (`MOD-03-MOB-08`)
 - **Who answers:** Owner, with design
 - **Gaps:** GAP-MOD03-12
-- **Status:** Open
+- **Answer:** (a), no OLED theme in version 1. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-017** · Can a member change their e-mail address in the app in version 1?
 
@@ -279,7 +295,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Nothing at launch
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD03-13
-- **Status:** Open
+- **Answer:** (a), e-mail change through support in version 1. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-04
 
@@ -290,7 +307,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-04-API-02`, `MOD-04-API-04`, `MOD-04-MOB-04`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD04-02
-- **Status:** Open
+- **Answer:** (a), accept and store premium-section writes from any verified member, show and use them only while the entitlement is held; media up to the target plan's cap during an open upgrade, extras hidden with `hidden_reason` `pending_upgrade` (TRX-068). Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-019** · Which providers do the media jobs use for face comparison of profile media, image moderation, the AI-generated score, the colour-filter check and transcription, and what are the thresholds for match, no match and manual review?
 
@@ -299,7 +317,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-04-WRK-01`, `MOD-04-WRK-02`
 - **Who answers:** Owner, with the trust-and-safety lead
 - **Gaps:** GAP-MOD04-04
-- **Status:** Open
+- **Answer:** Not settled by default: providers add cost and the match, no-match and review thresholds are a trust-and-safety call. **Engineering proposal (zero new vendor):** AWS Rekognition, already in the MOD-00 account list, for face comparison (`CompareFaces`) and image moderation (`DetectModerationLabels`); the AI-generated score, colour-filter check and transcription are not run at launch and those items go to manual review; thresholds seeded only once the trust-and-safety lead supplies them.
+- **Status:** Open · waiting on the owner and the trust-and-safety lead
 
 **DEC-020** · Which moderation outcomes get their own member notification: media rejected, prompt removed, account banned, account unbanned?
 
@@ -308,7 +327,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** MOD-04 rules 17 and 19; the ban notification in MOD-05 (`MOD-05-ADM-03`)
 - **Who answers:** Owner, with the trust-and-safety lead
 - **Gaps:** GAP-MOD04-06, GAP-MOD05-04
-- **Status:** Open
+- **Answer:** Media rejected and prompt removed: (a), two templates in MOD-11 (category `account`, push and in-app). Ban and unban: (a), reuse N36 "Account suspended" with a ban message key. No new channel or vendor; A13 requires the member to be told. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-06
 
@@ -319,7 +339,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-06-API-06` (copy and re-entry)
 - **Who answers:** Owner; the consent wording needs the lawyer's confirmation
 - **Gaps:** GAP-MOD06-05
-- **Status:** Open
+- **Answer:** Product parts: the gap's proposal (warn with the plan named and a link to BL1; re-verify without a new charge, reusing the original transaction; set `withdrawn` on an open application when consent is withdrawn mid-flow). Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026. The consent wording still needs the lawyer.
+- **Status:** Answered in part · consent wording awaiting the lawyer
 
 **DEC-022** · When is the carrier (mobile network) check scheduled, and through which vendor?
 
@@ -328,7 +349,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-06-API-09` only
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD06-10
-- **Status:** Open
+- **Answer:** Not scheduled before launch; the feature stays deferred [OD-06] and the vendor is chosen when it is scheduled after launch. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-07
 
@@ -339,7 +361,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** The D4 share action only (`MOD-07-MOB-05`)
 - **Who answers:** Owner; needs the lawyer's confirmation
 - **Gaps:** GAP-MOD07-03
-- **Status:** Open
+- **Answer:** Interim default for building: (a), the action is hidden behind kill-switch flag `profile.share`, seeded off. Not settled: what a shared link exposes and the consent rule need the lawyer.
+- **Status:** Open · interim default in use; awaiting the lawyer
 
 #### Needed by MOD-09
 
@@ -350,7 +373,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** MOD-09 exit gate; `MOD-09-ADM-03`
 - **Who answers:** Owner and the trust-and-safety lead
 - **Gaps:** GAP-MOD09-13
-- **Status:** Open
+- **Answer:** Verbs: (a), warn / restrict / suspend / ban only; board change is UIU-037. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026. Steps and look-back days per category stay with the owner and the trust-and-safety lead (before the beta).
+- **Status:** Answered in part · ladder steps and look-backs awaiting the trust-and-safety lead
 
 #### Needed by MOD-10
 
@@ -361,7 +385,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Web checkout (`MOD-10-WEB-01`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD10-06
-- **Status:** Open
+- **Answer:** (a), card data only in Flutterwave-hosted or inline fields, so only a token reaches our API (keeps us out of card-data scope, PCI DSS SAQ A). Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-026** · How is the "one trial per verified person" rule kept on the app stores, where an introductory offer is granted per store account?
 
@@ -370,7 +395,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** BL7 on the stores (`MOD-10-MOB-03`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD10-07
-- **Status:** Open
+- **Answer:** (a), server-authorised trial offer for eligible members, no-trial price otherwise; each store's current mechanism confirmed during the build (TRX-078). Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-027** · What are the real App Store and Google Play product ids and the Flutterwave payment-plan ids?
 
@@ -379,7 +405,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Every sandbox purchase test in MOD-10
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD10-12
-- **Status:** Open
+- **Answer:** Deferred by the owner, 26 Nov 2026: the build runs on the `TBD:<product>:<provider>` placeholders ([1MM-ADR-0046](adrs/1MM-ADR-0046-STORE-PRODUCT-IDS-AND-TBD-PLACEHOLDERS.md)); the nine real ids (three products × App Store, Google Play, Flutterwave) are entered as price versions in A19 before MOD-10's sandbox purchase tests. Reminder in [1MM-DEFERRED-GO-LIVE-DECISIONS](1MM-DEFERRED-GO-LIVE-DECISIONS.md).
+- **Status:** Deferred · needed by MOD-10 sandbox purchases
 
 #### Needed by MOD-11
 
@@ -390,7 +417,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Sending newsletter issues (`MOD-11-ADM-02`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD11-07
-- **Status:** Open
+- **Answer:** (b), collect-only at launch; sending issues is added later as a broadcast audience. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-029** · With discreet mode off, what may a push notification show on the lock screen?
 
@@ -399,7 +427,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Template wording (`MOD-11-DB-01`), native-language review
 - **Who answers:** Owner, with the trust-and-safety lead
 - **Gaps:** GAP-STD18-02
-- **Status:** Open
+- **Answer:** (a), a push title may carry the other member's nickname; no push carries message text, a real name or a security or billing detail. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-12
 
@@ -410,7 +439,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-12-MOB-02`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD12-08
-- **Status:** Open
+- **Answer:** (a), universal link that opens D13A in the app and otherwise redirects through `/get`; no public group page in version 1. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-031** · What happens to the groups a member owns when their plan lapses below the ownership limit?
 
@@ -419,7 +449,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-12-WRK-01`; the lapse work in MOD-10
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD12-12
-- **Status:** Open
+- **Answer:** (a), groups stay; the owner cannot create more or post without `groups.post`; staff may transfer (TRX-083). Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-13
 
@@ -430,7 +461,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-13-WEB-01`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD13-01
-- **Status:** Open
+- **Answer:** (a), static shell in `apps/site` with a Cloudflare Pages rewrite for `/s/*`, rendering from `GET /public/v1/share/{token}`; stale paths corrected in UIU-038. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-033** · Does "Talk to our safety team" on H2 raise a safety escalation or open support chat?
 
@@ -439,7 +471,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-13-API-04`; `MOD-13-MOB-01`, `MOD-13-MOB-04`
 - **Who answers:** Owner, with the trust-and-safety lead
 - **Gaps:** GAP-MOD13-04
-- **Status:** Open
+- **Answer:** (a), opens support chat H1B with the safety topic; only "I need help" raises an escalation; board change UIU-039. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-034** · Do check-ins, `POST /v1/safety/help`, the trusted-contact page and the escalation job keep working during maintenance and read-only windows, and does an urgent website safety report raise a desk escalation?
 
@@ -448,7 +481,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-13-API-04`, `MOD-13-API-06`; W34 in MOD-14 (`MOD-14-WEB-03`)
 - **Who answers:** Owner, with the trust-and-safety lead
 - **Gaps:** GAP-MOD13-12
-- **Status:** Open
+- **Answer:** (a), safety paths are exempt from maintenance and read-only mode [OD-32], and an urgent W34 report raises an `urgent_report` escalation. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-035** · Is it accepted that member e-mail, phone, birth date, message bodies and trusted-contact phone numbers are stored in clear (protected by at-rest encryption, roles and row-level security), while non-member addresses are field-encrypted?
 
@@ -457,7 +491,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** The DPIA in MOD-19; if (b), the trusted-contact work in `MOD-13-API-05`
 - **Who answers:** Owner and the interim DPO; needs the lawyer's confirmation
 - **Gaps:** GAP-STD12-05
-- **Status:** Open
+- **Answer:** Interim default for building: (a), current design (identity columns in clear, protected by at-rest encryption, roles and row-level security). Not settled: the owner, the interim DPO and the lawyer confirm before the DPIA.
+- **Status:** Open · interim default in use; awaiting the DPO and the lawyer
 
 #### Needed by MOD-14
 
@@ -468,7 +503,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-14-WRK-01`, `MOD-15-API-09`
 - **Who answers:** Owner
 - **Gaps:** GAP-RES01-01
-- **Status:** Open
+- **Answer:** (2), re-encode every image with `sharp` and scan only document uploads with ClamAV started on demand by the scan job, after a one-day spike; no always-on service and no new processor. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-037** · How does a help e-mail become a support ticket, given that there is no inbound e-mail webhook?
 
@@ -477,7 +513,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** The e-mail channel only (`MOD-14-ADM-01`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD14-04
-- **Status:** Open
+- **Answer:** (a), staff create e-mail tickets by hand through `POST /admin/v1/support/tickets` at launch; inbound parsing later. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-038** · Do support chat attachments ship?
 
@@ -486,7 +523,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Deferred item (`MOD-14-MOB-03`, `MOD-14-ADM-01`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD14-07
-- **Status:** Open
+- **Answer:** (a), deferred. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-039** · How is a "was this helpful" vote from the website stored, when the row needs an anonymous device hash and the site keeps no device id?
 
@@ -495,7 +533,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** The vote in `MOD-14-WEB-01`
 - **Who answers:** Owner and the interim DPO; needs the lawyer's confirmation
 - **Gaps:** GAP-MOD14-12
-- **Status:** Open
+- **Answer:** Interim default for building: (a), hash a random per-visit id held in `sessionStorage`. Not settled: the interim DPO and the lawyer confirm.
+- **Status:** Open · interim default in use; awaiting the lawyer
 
 #### Needed by MOD-15
 
@@ -506,7 +545,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Nothing at launch
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD15-06
-- **Status:** Open
+- **Answer:** (a), English only at launch; locale columns added later if needed. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-16
 
@@ -517,7 +557,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Completing those two request kinds in A36 (`MOD-16-ADM-02`)
 - **Who answers:** Owner and the lawyer; needs the lawyer's confirmation
 - **Gaps:** GAP-MOD16-08
-- **Status:** Open
+- **Answer:** Interim default for building: (a), withdraw `marketing`, `research` and `analytics` consents, hide the profile, record the request in `notes`; no new DDL. Not settled: counsel defines the effect.
+- **Status:** Open · interim default in use; awaiting the lawyer
 
 **DEC-042** · What are the consent-receipt retention period, the confirmed privacy response deadlines (`privacy.sla_days.*`) and the NDPC registration reference?
 
@@ -526,7 +567,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Production launch
 - **Who answers:** Lawyer, through the owner; needs the lawyer's confirmation
 - **Gaps:** GAP-MOD16-10
-- **Status:** Open
+- **Answer:** Values the lawyer supplies; the current deadlines stay provisional and `consent_receipts.retention_days` is seeded as null.
+- **Status:** Open · values to supply (lawyer)
 
 **DEC-043** · Must a material change to a legal document also be announced by e-mail, for members who do not open the app?
 
@@ -535,7 +577,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Nothing
 - **Who answers:** Owner; needs the lawyer's confirmation
 - **Gaps:** GAP-MOD16-11
-- **Status:** Open
+- **Answer:** Interim default for building: (a), in-app sheet and website banner only, no e-mail template. Not settled: the lawyer confirms.
+- **Status:** Open · interim default in use; awaiting the lawyer
 
 #### Needed by MOD-17
 
@@ -546,7 +589,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** A32 checklist item 3 (`MOD-17-ADM-02`)
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD17-07
-- **Status:** Open
+- **Answer:** Shape: `{"window_seconds": int, "threshold": int, "min_distinct": int | null}`, validated in `packages/contracts`. Values set from the staging baseline in MOD-17 and approved then; all eight stay null until that baseline. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-045** · Who owns a security incident, who are the deputies, and who notifies the regulator and members?
 
@@ -555,7 +599,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** The MOD-19 launch gate
 - **Who answers:** Owner
 - **Gaps:** GAP-STD11-11
-- **Status:** Open
+- **Answer:** Deferred by the owner, 26 Nov 2026: MOD-17 writes the playbooks with role placeholders; the owner names the roles before the MOD-19 launch gate. Only roles and shared aliases are recorded in this public repository; names stay outside it. Reminder in [1MM-DEFERRED-GO-LIVE-DECISIONS](1MM-DEFERRED-GO-LIVE-DECISIONS.md).
+- **Status:** Deferred · needed by the MOD-19 launch gate
 
 #### Needed by MOD-18
 
@@ -566,7 +611,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Sign-off of the safety KPI tab (`MOD-18-ADM-02`)
 - **Who answers:** Owner, with the trust-and-safety lead
 - **Gaps:** GAP-MOD18-07
-- **Status:** Open
+- **Answer:** (a), members with `users.last_active_at` in the period, labelled as operational data. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 #### Needed by MOD-19
 
@@ -577,7 +623,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-19-QA-03`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD19-02
-- **Status:** Open
+- **Answer:** Sized from the "few thousand members" assumption of [TR §15.2] against the latency budgets of [TR §15.1]; `MOD-19-QA-03` writes the exact figures into its plan for sign-off at the gate. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-048** · What are the beta stages: is the pre-launch private beta of the whole product separate from the invite-only market state, and is Lagos open to anyone during the private beta?
 
@@ -586,7 +633,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** `MOD-19-OPS-08`
 - **Who answers:** Owner
 - **Gaps:** GAP-MOD19-04
-- **Status:** Open
+- **Answer:** The stages of [1MM-EXE-MOD-19](execution/1MM-EXE-MOD-19-HARDENING-AND-LAUNCH.md) §7.8. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-049** · Who approves the store privacy declarations (App Store privacy details, Google Play data safety) and the age rating?
 
@@ -595,7 +643,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Store submission
 - **Who answers:** Owner and the interim DPO; needs the lawyer's confirmation
 - **Gaps:** GAP-STD11-10
-- **Status:** Open
+- **Answer:** Approval by the owner and the interim DPO, as recommended; needs the lawyer's confirmation before store submission.
+- **Status:** Open · awaiting the lawyer
 
 **DEC-050** · When the deferred offers scope (admin module A22, the three `offers.*` jobs, website W24) or the optional website sections W19 are switched on, who schedules them and under which task ids?
 
@@ -604,7 +653,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** Nothing before launch. Blocks switching on `offers.enabled` or W19.
 - **Who answers:** Owner
 - **Gaps:** GAP-EXE00-04
-- **Status:** Open
+- **Answer:** (a), left unscheduled until `offers.enabled` or the W19 flags are to be turned on. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026.
+- **Status:** Answered
 
 **DEC-051** · Who runs Lagos usability round 1 (the Technical Reference phase 3 exit check), and on which build?
 
@@ -613,7 +663,8 @@ the question is already live. All entries are **Open**.
 - **Blocks:** MOD-19's exit gate (the launch gate depends on the scorecard).
 - **Who answers:** Owner
 - **Gaps:** GAP-EXE00-05
-- **Status:** Open
+- **Answer:** (a), run on the stage 40 build, sessions entered through A35, themes fixed before `MOD-19-QA-06`. Default applied by the owner's standing instruction (zero or least cost, lean start-up, industry practice), 26 Nov 2026. The person responsible is named by the owner.
+- **Status:** Answered in part · person responsible to name
 
 ## Part B · Repository follow-ups
 
@@ -1462,6 +1513,7 @@ Technical Reference or schema part.
 
 ## Change log
 
-| Version | Date        | Change                                                                                                                                                 |
-| ------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| v1.0    | 24 Nov 2026 | First issue: 49 decisions from 50 DECISION gaps; 60 repository follow-ups and 2 checked items from 71 REPO gaps, each verified against the repository. |
+| Version | Date        | Change                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.1    | 26 Nov 2026 | DEC-001 answered (awaiting the lawyer); DEC-002 to DEC-012 decided by the owner (DEC-006 option (b), the rest the recommended default). DEC-013 to DEC-051 decided under the owner's standing instruction (zero or least cost, lean, industry practice) except those that need the lawyer, a value or a name, which are marked open; legal items carry an interim default for building only. |
+| v1.0    | 24 Nov 2026 | First issue: 49 decisions from 50 DECISION gaps; 60 repository follow-ups and 2 checked items from 71 REPO gaps, each verified against the repository.                                                                                                                                                                                                                                       |

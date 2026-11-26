@@ -18,7 +18,7 @@ private spec pack, which is not in this repository.
 
 ## 1. Summary
 
-34 entries from 31 gaps of type UI (including mixed types). All are **Open**.
+39 entries: 34 from 31 gaps of type UI (including mixed types), and UIU-035 to UIU-039 from owner decisions. Each entry's **Status** line shows where it stands.
 
 | Surface         | Blocks an API gate | Blocks a client task | Polish | Total  |
 | --------------- | ------------------ | -------------------- | ------ | ------ |
@@ -418,6 +418,17 @@ By module A01–A36 and view.
 - **Priority:** Polish
 - **Status:** Open
 
+### UIU-035 · A04 · App shell: the "Help" item opens staff help articles
+
+- **Gaps:** GAP-MOD00-08 (DEC-006), GAP-MOD00-14
+- **Surface:** Admin console
+- **UI part:** Admin module A04 "App shell", top bar "Help" item [ADM A04].
+- **Change:** Replace "opens this spec's module help anchor" with: opens the console route `/support/help` (the A27 help-centre list) filtered to staff-audience articles. The item is hidden until A27 and the staff audience exist.
+- **Why:** The owner chose option (b) of DEC-006 on 26 Nov 2026; the admin spec the item used to open is private and not hosted.
+- **Blocks:** Showing the item (`MOD-14-ADM-03`); `MOD-00-ADM-02` ships it hidden and is not held up
+- **Priority:** Blocks a client task
+- **Status:** Open
+
 ## 5. Public website
 
 By module W01–W40, then the global system.
@@ -496,26 +507,70 @@ Tablet and landscape boards, tokens, assets, error and state patterns.
 - **Priority:** Polish
 - **Status:** Open
 
+### UIU-036 · PM7 / E5 / R3 · Password rule text
+
+- **Gaps:** GAP-MOD03-11 (DEC-015)
+- **Surface:** Member app
+- **UI part:** PM7 "Change password", E5 "Create a password", R3 "Create a new password": the password rule text under the field [INV PM7, E5, R3].
+- **Change:** Replace "8+ characters, letters and numbers" with the length rule only. The breached-password check gives its own error after submit.
+- **Why:** DEC-015 (26 Nov 2026): length minimum plus breach check, no composition rule [TR §13.2], [OD-07].
+- **Blocks:** `MOD-03-MOB-*` password screens
+- **Priority:** Blocks a client task
+- **Status:** Open
+
+### UIU-037 · Admin sanctions board · Action verbs
+
+- **Gaps:** GAP-MOD09-13 (DEC-024)
+- **Surface:** Admin console
+- **UI part:** Admin sanctions board (cited in the gap as A20): the action verbs.
+- **Change:** Keep warn / restrict / suspend / ban only; remove "Remove content + warning", "Remove photos + re-verify" and "Restrict payments".
+- **Why:** DEC-024 (26 Nov 2026) kept the four verbs the schema supports.
+- **Blocks:** `MOD-09-ADM-03`
+- **Priority:** Blocks a client task
+- **Status:** Open
+
+### UIU-038 · LG5 and the website route table · Trusted-contact page path
+
+- **Gaps:** GAP-MOD13-01 (DEC-032)
+- **Surface:** Member app and public website
+- **UI part:** LG5 "What your trusted contact sees": the route shown; website route table row 30 [INV LG5], [WEB].
+- **Change:** Correct the stale paths to `1minitman.com/s/<token>`.
+- **Why:** DEC-032 (26 Nov 2026): a static shell in `apps/site` serves `/s/*`.
+- **Blocks:** `MOD-13-WEB-01`
+- **Priority:** Blocks a client task
+- **Status:** Open
+
+### UIU-039 · H2 · "Talk to our safety team" button
+
+- **Gaps:** GAP-MOD13-04 (DEC-033)
+- **Surface:** Member app
+- **UI part:** H2 "Safety centre", "Talk to our safety team" button [INV H2].
+- **Change:** The button opens support chat H1B with the safety topic; only "I need help" raises an escalation.
+- **Why:** DEC-033 (26 Nov 2026).
+- **Blocks:** `MOD-13-MOB-01`, `MOD-13-MOB-04`
+- **Priority:** Blocks a client task
+- **Status:** Open
+
 ## 8. Board changes that wait on an owner decision
 
 These are not entries yet. Each follows from a gap of type DECISION that names a board; when the
 decision is answered in [1MM-LOG-04](1MM-LOG-04-OPEN-DECISIONS-AND-FOLLOW-UPS.md), whoever
 records the answer adds the entry here (section 2.3) or strikes the row.
 
-| Decision | Gap                        | UI part                                                                                           | Board change if the recommended default is confirmed                                                                           |
-| -------- | -------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| DEC-006  | GAP-MOD00-08               | A04 "App shell", top bar "Help" item                                                              | Remove the item, or point it at staff help articles managed in A27                                                             |
-| DEC-015  | GAP-MOD03-11               | PM7 "Change password", E5 "Create a password", R3 "Create a new password": the password rule text | Replace "8+ characters, letters and numbers" with the length rule only (the breach check gives its own error)                  |
-| DEC-016  | GAP-MOD03-12               | D17 "Settings", theme row                                                                         | No change (OLED theme left out of v1); a fourth option only if the owner asks for it                                           |
-| DEC-023  | GAP-MOD07-03               | D4 "Full spec profile", Share action                                                              | Action hidden while the flag is off; no board change until the privacy decision                                                |
-| DEC-024  | GAP-MOD09-13               | Admin sanctions board (cited in the gap as board A20): the action verbs                           | Keep warn / restrict / suspend / ban only; remove "Remove content + warning", "Remove photos + re-verify", "Restrict payments" |
-| DEC-030  | GAP-MOD12-08               | GC5 "Group created", share link                                                                   | Ship GC5 without the share link until the link behaviour is decided                                                            |
-| DEC-032  | GAP-MOD13-01               | LG5 "What your trusted contact sees": the route shown; website route table row 30                 | Correct the stale paths to `1minitman.com/s/<token>`                                                                           |
-| DEC-033  | GAP-MOD13-04               | H2 "Safety centre", "Talk to our safety team" button                                              | Button opens support chat H1B with the safety topic; only "I need help" raises an escalation                                   |
-| DEC-038  | GAP-MOD14-07               | H1B "Chat with support", composer                                                                 | No attach control at launch; add one only if chat attachments are approved                                                     |
-| DEC-043  | GAP-MOD16-11               | NT3 / NT4                                                                                         | One more e-mail template for a material legal change, only if the owner requires an e-mail notice                              |
-| DEC-020  | GAP-MOD04-06, GAP-MOD05-04 | NT4                                                                                               | Wording for any new moderation-outcome templates the owner approves (media rejected, prompt removed, ban, unban)               |
-| DEC-005  | GAP-STD03-07               | All phone boards                                                                                  | No change: phones stay portrait only, except full-screen media and calls                                                       |
+| Decision    | Gap                        | UI part                                                                                           | Board change if the recommended default is confirmed                                                             |
+| ----------- | -------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| ~~DEC-006~~ | GAP-MOD00-08               | A04 "App shell", top bar "Help" item                                                              | Answered 26 Nov 2026, option (b): entry UIU-035                                                                  |
+| ~~DEC-015~~ | GAP-MOD03-11               | PM7 "Change password", E5 "Create a password", R3 "Create a new password": the password rule text | Answered 26 Nov 2026: entry UIU-036                                                                              |
+| ~~DEC-016~~ | GAP-MOD03-12               | D17 "Settings", theme row                                                                         | Answered 26 Nov 2026: no board change                                                                            |
+| DEC-023     | GAP-MOD07-03               | D4 "Full spec profile", Share action                                                              | Action hidden while the flag is off; no board change until the privacy decision                                  |
+| ~~DEC-024~~ | GAP-MOD09-13               | Admin sanctions board (cited in the gap as board A20): the action verbs                           | Answered 26 Nov 2026 (verbs): entry UIU-037                                                                      |
+| ~~DEC-030~~ | GAP-MOD12-08               | GC5 "Group created", share link                                                                   | Answered 26 Nov 2026, option (a): the share link stays on GC5; no board change                                   |
+| ~~DEC-032~~ | GAP-MOD13-01               | LG5 "What your trusted contact sees": the route shown; website route table row 30                 | Answered 26 Nov 2026: entry UIU-038                                                                              |
+| ~~DEC-033~~ | GAP-MOD13-04               | H2 "Safety centre", "Talk to our safety team" button                                              | Answered 26 Nov 2026: entry UIU-039                                                                              |
+| DEC-038     | GAP-MOD14-07               | H1B "Chat with support", composer                                                                 | No attach control at launch; add one only if chat attachments are approved                                       |
+| DEC-043     | GAP-MOD16-11               | NT3 / NT4                                                                                         | One more e-mail template for a material legal change, only if the owner requires an e-mail notice                |
+| DEC-020     | GAP-MOD04-06, GAP-MOD05-04 | NT4                                                                                               | Wording for any new moderation-outcome templates the owner approves (media rejected, prompt removed, ban, unban) |
+| DEC-005     | GAP-STD03-07               | All phone boards                                                                                  | No change: phones stay portrait only, except full-screen media and calls                                         |
 
 ## 9. Gap index
 
@@ -569,6 +624,7 @@ Notes on merged and split gaps:
 
 ## Change log
 
-| Version | Date        | Change                                                                                                                   |
-| ------- | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| v1.0    | 24 Nov 2026 | First issue: 34 entries consolidated from 31 UI-type gaps in the execution, standards, database and resources documents. |
+| Version | Date        | Change                                                                                                                                                                                         |
+| ------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.1    | 26 Nov 2026 | UIU-035 to UIU-039 added from DEC-006, DEC-015, DEC-024, DEC-032 and DEC-033; their rows in section 8 are answered, as are DEC-016 and DEC-030 (no board change). DEC-023 waits on the lawyer. |
+| v1.0    | 24 Nov 2026 | First issue: 34 entries consolidated from 31 UI-type gaps in the execution, standards, database and resources documents.                                                                       |
