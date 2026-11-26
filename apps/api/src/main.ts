@@ -3,6 +3,13 @@ import { RedisClient } from 'bun';
 import { createApp } from './app';
 import { loadEnv } from './config/env';
 import { createCheckReadiness, postgresProbe, redisProbe } from './modules/system';
+import {
+  createAdminGuards,
+  createMemberGuards,
+  createRedisSessionDenyList,
+  denyAllAdminAuthPorts,
+  denyAllMemberAuthPorts,
+} from './platform/auth';
 import { createLogger } from './platform/logger';
 import { createRedisRateLimiter } from './platform/rate-limit';
 
@@ -33,7 +40,17 @@ const app = createApp({
     database: postgresProbe(database),
     redis: redisProbe(redis),
   }),
-  surfaces: { rateLimiter: createRedisRateLimiter(redis) },
+  surfaces: {
+    rateLimiter: createRedisRateLimiter(redis),
+    auth: {
+      // Deny by default until MOD-03 supplies token verification and MOD-01 the admin checks.
+      member: createMemberGuards({
+        ...denyAllMemberAuthPorts(),
+        denyList: createRedisSessionDenyList(redis),
+      }),
+      admin: createAdminGuards(denyAllAdminAuthPorts()),
+    },
+  },
 });
 
 const server = Bun.serve({ port: env.API_PORT, fetch: app.fetch });

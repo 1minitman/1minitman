@@ -1,4 +1,5 @@
 import { SURFACES, WEBHOOKS_BASE_PATH, type SurfaceName } from '@1minitman/contracts';
+import type { AdminGuards, MemberGuards } from '../platform/auth';
 import { createRouter, type Router } from '../platform/http/router';
 import type { RateLimiter } from '../platform/rate-limit';
 
@@ -16,6 +17,12 @@ import type { RateLimiter } from '../platform/rate-limit';
 export interface SurfaceDeps {
   /** Redis-backed limiter. Use it with rateLimit() on auth, billing and form routes. */
   rateLimiter: RateLimiter;
+  /**
+   * Route guards. Member routes use `auth.member.requireMember()` (and `requireRecentAuth()` for
+   * M+); admin routes use `auth.admin.requireAdmin('<permission key>')`. Attach them per route:
+   * sign-in routes on both surfaces stay open.
+   */
+  auth: { member: MemberGuards; admin: AdminGuards };
 }
 
 const builders: Record<SurfaceName, (router: Router, deps: SurfaceDeps) => Router> = {

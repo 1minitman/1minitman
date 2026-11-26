@@ -2,6 +2,7 @@ import { SURFACE_NAMES } from '@1minitman/contracts';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildOpenApiDocument, type AppDeps } from '../app';
+import { denyAllAuth } from '../platform/auth';
 import { createLogger } from '../platform/logger';
 import { createMemoryRateLimiter } from '../platform/rate-limit';
 
@@ -14,7 +15,7 @@ const deps: AppDeps = {
     CORS_ALLOWED_ORIGINS: [],
   },
   logger: createLogger('error'),
-  surfaces: { rateLimiter: createMemoryRateLimiter() },
+  surfaces: { rateLimiter: createMemoryRateLimiter(), auth: denyAllAuth() },
   checkReadiness: () => {
     throw new Error('not available while emitting documents');
   },

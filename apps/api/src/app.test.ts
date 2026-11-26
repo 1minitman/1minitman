@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { isProblemCode, SURFACE_NAMES } from '@1minitman/contracts';
 import { buildOpenApiDocument, createApp, type AppDeps } from './app';
 import { createCheckReadiness } from './modules/system';
+import { denyAllAuth } from './platform/auth';
 import { createLogger } from './platform/logger';
 import { createMemoryRateLimiter } from './platform/rate-limit';
 
@@ -17,7 +18,7 @@ const deps = (databaseUp = true): AppDeps => ({
     database: probe('database', databaseUp),
     redis: probe('redis', true),
   }),
-  surfaces: { rateLimiter: createMemoryRateLimiter() },
+  surfaces: { rateLimiter: createMemoryRateLimiter(), auth: denyAllAuth() },
 });
 const build = (databaseUp = true) => createApp(deps(databaseUp));
 

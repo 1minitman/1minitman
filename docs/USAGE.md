@@ -122,6 +122,37 @@ Steps:
 
 Errors are always `problem+json` with a request id: throw `ProblemError` and the API formats it.
 
+#### Guarding a route
+
+Guards live in `apps/api/src/platform/auth` and reach modules as `deps.auth` (`SurfaceDeps`).
+Attach them per route, because the sign-in routes of both surfaces stay open:
+
+```ts
+router.get('/me', deps.auth.member.requireMember(), handler); // M
+router.put(
+  '/me/password',
+  deps.auth.member.requireMember(),
+  deps.auth.member.requireRecentAuth(),
+  handler,
+); // M+
+router.get('/users', deps.auth.admin.requireAdmin('users.read'), handler);
+```
+
+Handlers read the caller with `currentMember(c)` or `currentAdmin(c)`. Every check is a port,
+and until its owning module supplies it the composition root wires a stub that refuses, so a
+guarded route answers 401:
+
+| Port (`platform/auth`)                          | Supplied by     | Contract                                                                                                                                                                                                    |
+| ----------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AccessTokenVerifier.verify(token)`             | `MOD-03-API-02` | The `{memberId, sessionId}` of a valid 15-minute EdDSA access token, `null` for any other token (401 `unauthenticated`)                                                                                     |
+| `SessionDenyList.isDenied(sessionId)`           | built here      | Redis `sess:deny:{session}` (MOD-03 writes it); denied is 401 `session_expired`; Redis down is 503 `dependency_unavailable` (GAP-MOD00-17)                                                                  |
+| `RecentAuthCheck.isRecent(principal)`           | `MOD-03-API-02` | Re-authenticated within the window of [TR §8.2]; otherwise 403 `reauth_required`                                                                                                                            |
+| `AdminAuthPorts.session(request)`               | `MOD-01-API-02` | Resolves the session cookie to `{adminId, sessionId}`, or refuses with `unauthenticated` or `session_expired`                                                                                               |
+| `status`, `permission`, `scope`, `ip`, `reauth` | `MOD-01-API-03` | Run in this order after the session ([ADM §1.1]); each returns `{allow: true}` or a refusal with its registry code: `permission` (with the key), `not_found` for scope, `ip_not_allowed`, `reauth_required` |
+
+The first refusal ends the request and later checks never run. A member token is never read on
+`/admin/v1`, and the admin cookie is never read on `/v1`.
+
 ### A database change
 
 1. Add the next numbered file in `packages/db/migrations/` (the next unused number: one above the
