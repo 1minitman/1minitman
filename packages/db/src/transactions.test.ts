@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { sql } from 'drizzle-orm';
-import { createDatabase, type Database } from './client';
+import { AppEnvMismatchError, assertAppEnv, createDatabase, type Database } from './client';
 import {
   TransactionContextError,
   withAdminTx,
@@ -207,13 +207,68 @@ describe.skipIf(!ready)('row-level security context on PostgreSQL', () => {
     }
   });
 
-  test('every connection carries app.env from APP_ENV, inside and outside a transaction', async () => {
+  test('app.env comes from the login, with APP_ENV only as the in-transaction fallback', async () => {
+    // No startup parameter: outside a transaction the session shows the role setting, which is
+    // unset on the local roles, so app_env() reports its default.
     const [outside] = await member.sql`SELECT app_env() AS e`;
-    expect(outside?.e).toBe('staging');
+    expect(outside?.e).toBe('development');
     const inside = await withWorkerTx(worker, (tx) =>
       rows<{ e: string }>(tx, sql`SELECT app_env() AS e`),
     );
     expect(inside[0]?.e).toBe('local');
+  });
+
+  test('a session value (as from ALTER ROLE … SET app.env) wins over APP_ENV', async () => {
+    const pinned = createDatabase({
+      url: urls.admin ?? '',
+      surface: 'admin',
+      appEnv: 'production',
+      max: 1,
+    });
+    try {
+      await pinned.sql`SET app.env = 'staging'`;
+      const inside = await withAdminTx(pinned, (tx) =>
+        rows<{ e: string }>(tx, sql`SELECT app_env() AS e`),
+      );
+      expect(inside[0]?.e).toBe('staging');
+    } finally {
+      await pinned.close();
+    }
+  });
+
+  describe('assertAppEnv at start-up', () => {
+    test('production refuses a login that does not report production', async () => {
+      const prod = createDatabase({
+        url: urls.admin ?? '',
+        surface: 'admin',
+        appEnv: 'production',
+        max: 1,
+      });
+      try {
+        await expect(assertAppEnv(prod)).rejects.toBeInstanceOf(AppEnvMismatchError);
+      } finally {
+        await prod.close();
+      }
+    });
+
+    test('production passes when the login reports production', async () => {
+      const prod = createDatabase({
+        url: urls.admin ?? '',
+        surface: 'admin',
+        appEnv: 'production',
+        max: 1,
+      });
+      try {
+        await prod.sql`SET app.env = 'production'`;
+        expect(await assertAppEnv(prod)).toBe('production');
+      } finally {
+        await prod.close();
+      }
+    });
+
+    test('other environments are not checked', async () => {
+      expect(await assertAppEnv(member)).toBe('development');
+    });
   });
 
   describe('four-eyes on config writes follows app.env', () => {
