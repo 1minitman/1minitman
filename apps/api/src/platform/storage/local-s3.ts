@@ -4,6 +4,7 @@ import {
   SIGV4_ALGORITHM,
   signatureFor,
   signaturesEqual,
+  SIGV4_MAX_EXPIRES_SECONDS,
   UNSIGNED_PAYLOAD,
   type SigningCredentials,
 } from './sigv4';
@@ -36,6 +37,9 @@ export interface LocalS3 {
   seed(bucket: string, key: string, body: Uint8Array, contentType: string): void;
   stop(): Promise<void>;
 }
+
+/** S3 refuses a request dated more than 15 minutes from its own clock. */
+const MAX_CLOCK_SKEW_MS = 15 * 60 * 1000;
 
 const xmlError = (status: number, code: string) =>
   new Response(`<?xml version="1.0" encoding="UTF-8"?><Error><Code>${code}</Code></Error>`, {
@@ -84,17 +88,40 @@ export const startLocalS3 = (
     if (presigned && query['X-Amz-Algorithm'] !== SIGV4_ALGORITHM) {
       return xmlError(403, 'AccessDenied');
     }
-    const [key, , region] = credential.split('/');
-    if (key !== accessKeyId || !region) return xmlError(403, 'InvalidAccessKeyId');
+    const [key, scopeDate, region, service, terminator, ...rest] = credential.split('/');
+    if (key !== accessKeyId) return xmlError(403, 'InvalidAccessKeyId');
+    // The scope must be `<date of X-Amz-Date>/<region>/s3/aws4_request`, as S3 checks it.
+    if (
+      !region ||
+      scopeDate !== amzDate.slice(0, 8) ||
+      service !== 's3' ||
+      terminator !== 'aws4_request' ||
+      rest.length > 0
+    ) {
+      return xmlError(403, 'AuthorizationQueryParametersError');
+    }
+    // `host` is always signed.
+    if (!signedHeaders.split(';').includes('host')) return xmlError(403, 'AccessDenied');
 
+    const issued = Date.parse(
+      amzDate.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/, '$1-$2-$3T$4:$5:$6Z'),
+    );
+    if (!Number.isFinite(issued)) return xmlError(403, 'AccessDenied');
+    const clock = now().getTime();
     if (presigned) {
-      const issued = Date.parse(
-        amzDate.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/, '$1-$2-$3T$4:$5:$6Z'),
-      );
-      const expires = Number(query['X-Amz-Expires']);
-      if (!Number.isFinite(issued) || now().getTime() > issued + expires * 1000) {
+      const expiresParam = query['X-Amz-Expires'] ?? '';
+      const expires = Number(expiresParam);
+      if (
+        !/^\d+$/.test(expiresParam) ||
+        expires < 1 ||
+        expires > SIGV4_MAX_EXPIRES_SECONDS ||
+        clock > issued + expires * 1000 ||
+        issued > clock + MAX_CLOCK_SKEW_MS
+      ) {
         return xmlError(403, 'AccessDenied');
       }
+    } else if (Math.abs(clock - issued) > MAX_CLOCK_SKEW_MS) {
+      return xmlError(403, 'RequestTimeTooSkewed');
     }
 
     const headers: Record<string, string> = {};

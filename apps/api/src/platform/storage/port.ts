@@ -92,11 +92,16 @@ const hasControlOrBackslash = (key: string) =>
     return code < 0x20 || code === 0x7f || char === '\\';
   });
 
-/** Refuses an empty key, a leading slash, `.` or `..` segments, control characters and `\`. */
+/**
+ * Refuses an empty key, a leading slash, `.` or `..` segments, control characters, `\` and text
+ * that is not well-formed UTF-16.
+ */
 export const assertObjectKey = (key: string) => {
   const segments = key.split('/');
   const valid =
     key.length > 0 &&
+    // A lone surrogate has no UTF-8 form; `encodeURIComponent` would throw on it while signing.
+    !/\p{Surrogate}/u.test(key) &&
     new TextEncoder().encode(key).length <= MAX_KEY_BYTES &&
     !hasControlOrBackslash(key) &&
     segments.every((segment) => segment.length > 0 && segment !== '.' && segment !== '..');

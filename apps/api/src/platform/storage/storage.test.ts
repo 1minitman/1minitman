@@ -102,6 +102,33 @@ describe('presigned PUT (definition of done)', () => {
     expect((await put(upload.url, jpeg(2048), upload.headers)).status).toBe(403);
   });
 
+  test('accepts a key with spaces, plus signs and non-ASCII text', async () => {
+    const key = 'u/a b+c/ü 😀.jpg';
+    const upload = storage.presignUpload({ ...declared, key });
+    expect((await put(upload.url, jpeg(2048), upload.headers)).status).toBe(200);
+    expect(local.objects.has(`media-quarantine/${key}`)).toBe(true);
+  });
+
+  test('refuses a URL whose life was stretched or whose date was moved', async () => {
+    const upload = storage.presignUpload(declared, { expiresInSeconds: 60 });
+    const longer = new URL(upload.url);
+    longer.searchParams.set('X-Amz-Expires', '604801');
+    expect((await put(longer.toString(), jpeg(2048), upload.headers)).status).toBe(403);
+    const scope = new URL(upload.url);
+    scope.searchParams.set(
+      'X-Amz-Credential',
+      scope.searchParams.get('X-Amz-Credential')!.replace('/20261128/', '/20261127/'),
+    );
+    expect((await put(scope.toString(), jpeg(2048), upload.headers)).status).toBe(403);
+    expect(local.objects.size).toBe(0);
+  });
+
+  test('refuses a URL dated in the future', async () => {
+    const upload = storage.presignUpload(declared);
+    clock = new Date('2026-11-28T11:00:00Z');
+    expect((await put(upload.url, jpeg(2048), upload.headers)).status).toBe(403);
+  });
+
   test('always targets quarantine, with the Recommendation life by default', () => {
     const upload = storage.presignUpload(declared);
     expect(new URL(upload.url).pathname).toBe(`/media-quarantine/${declared.key}`);
@@ -145,12 +172,18 @@ describe('presignUpload refuses a bad declaration before signing', () => {
     );
   });
 
-  test.each(['', '/a.jpg', 'a//b.jpg', 'a/../b.jpg', './a.jpg', 'a\u0000.jpg', 'a\\b.jpg'])(
-    'key %p is refused',
-    (key) => {
-      expect(() => storage.presignUpload({ ...declared, key })).toThrow('invalid object key');
-    },
-  );
+  test.each([
+    '',
+    '/a.jpg',
+    'a//b.jpg',
+    'a/../b.jpg',
+    './a.jpg',
+    'a\u0000.jpg',
+    'a\\b.jpg',
+    'a\ud800.jpg',
+  ])('key %p is refused', (key) => {
+    expect(() => storage.presignUpload({ ...declared, key })).toThrow('invalid object key');
+  });
 
   test.each([0, -5, 1.5, 604_801])('a life of %p seconds is refused', (expiresInSeconds) => {
     expect(() => storage.presignUpload(declared, { expiresInSeconds })).toThrow(/presigned URL/);
@@ -220,6 +253,33 @@ describe('server-side calls', () => {
     expect(error).toBeInstanceOf(ProblemError);
     expect(error.code).toBe('provider_error');
     expect(String(error.message)).not.toContain('wrong-secret-value');
+  });
+
+  test('a server-side call with a skewed clock is refused', async () => {
+    const skewed = createR2Storage({
+      endpoint: local.endpoint,
+      ...local.credentials,
+      buckets,
+      now: () => new Date(clock.getTime() - 16 * 60 * 1000),
+    });
+    await expect(skewed.head({ bucket: 'quarantine', key: 'a.jpg' })).rejects.toMatchObject({
+      code: 'provider_error',
+    });
+  });
+
+  test('head without a Content-Length is provider_error, never 0 bytes', async () => {
+    const noLength = createR2Storage({
+      endpoint: local.endpoint,
+      ...local.credentials,
+      buckets,
+      fetch: (async () =>
+        new Response(null, {
+          headers: { 'content-type': 'image/jpeg' },
+        })) as unknown as typeof fetch,
+    });
+    await expect(noLength.head({ bucket: 'quarantine', key: 'a.jpg' })).rejects.toMatchObject({
+      code: 'provider_error',
+    });
   });
 
   test('a store that does not answer times out with provider_timeout', async () => {

@@ -120,8 +120,10 @@ export const createR2Storage = (config: R2StorageConfig): ObjectStorage => {
       const { res } = await call('HEAD', ref);
       if (res.status === 404) return null;
       if (!res.ok) throw failed('head', res.status);
-      const bytes = Number(res.headers.get('content-length'));
-      if (!Number.isInteger(bytes) || bytes < 0) throw failed('head', res.status);
+      // `Number(null)` is 0: a missing header must not read as an empty object.
+      const length = res.headers.get('content-length') ?? '';
+      const bytes = Number(length);
+      if (!/^\d+$/.test(length) || !Number.isSafeInteger(bytes)) throw failed('head', res.status);
       return {
         bytes,
         contentType: res.headers.get('content-type') ?? '',
