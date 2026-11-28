@@ -6,6 +6,7 @@ import { requestContext } from '../http/middleware';
 import { errorHandler } from '../http/problem';
 import { createRouter } from '../http/router';
 import { createLogger, type Logger } from '../logger';
+import { ORIGIN_SECRET_HEADER, originLock } from '../origin';
 import {
   checkRateLimit,
   createMemoryRateLimiter,
@@ -321,15 +322,30 @@ describe('resolveSubject', () => {
     expect(normaliseIdentity('phone', ' (0800) 000 0000')).toBe('08000000000');
   });
 
-  test('without Cloudflare the first X-Forwarded-For address is used', async () => {
+  test('X-Forwarded-For stands in for Cloudflare in local only (GAP-MOD00-36)', async () => {
     let subject: string | undefined;
-    const app = createRouter();
-    app.use('*', requestContext(createLogger('error')));
-    app.get('/', (c) => ((subject = resolveSubject({ scope: 'ip' }, c)), c.text('ok')));
-    await app.request('/', { headers: { 'x-forwarded-for': '5.5.5.5, 6.6.6.6' } });
+    const appIn = (appEnv: 'local' | 'staging') => {
+      const app = createRouter();
+      app.use('*', requestContext(createLogger('error')));
+      app.use('*', originLock({ appEnv, secret: 'origin-secret' }));
+      app.get('/', (c) => ((subject = resolveSubject({ scope: 'ip' }, c)), c.text('ok')));
+      return app;
+    };
+    const local = appIn('local');
+    await local.request('/', { headers: { 'x-forwarded-for': '5.5.5.5, 6.6.6.6' } });
     expect(subject).toBe('5.5.5.5');
-    await app.request('/');
+    await local.request('/');
     expect(subject).toBe('unknown');
+
+    const staging = appIn('staging');
+    await staging.request('/', {
+      headers: {
+        [ORIGIN_SECRET_HEADER]: 'origin-secret',
+        'cf-connecting-ip': '7.7.7.7',
+        'x-forwarded-for': '5.5.5.5',
+      },
+    });
+    expect(subject).toBe('7.7.7.7');
   });
 });
 

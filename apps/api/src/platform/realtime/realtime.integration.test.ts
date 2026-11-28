@@ -56,7 +56,12 @@ const startInstance = async () => {
     logger,
   });
   const app = createApp({
-    env: { APP_ENV: 'local', APP_VERSION: 'test', CORS_ALLOWED_ORIGINS: [] },
+    env: {
+      APP_ENV: 'local',
+      APP_VERSION: 'test',
+      CORS_ALLOWED_ORIGINS: [],
+      ORIGIN_SHARED_SECRET: '',
+    },
     logger,
     checkReadiness: createCheckReadiness({
       database: { name: 'database', ping: () => Promise.resolve() },

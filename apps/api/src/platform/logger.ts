@@ -1,3 +1,5 @@
+import { redactFields, redactText } from './redact';
+
 type Level = 'debug' | 'info' | 'warn' | 'error';
 const ORDER: Record<Level, number> = { debug: 10, info: 20, warn: 30, error: 40 };
 
@@ -11,7 +13,9 @@ export interface Logger {
 
 /**
  * Structured JSON logs, one line per event (Technical Reference 14).
- * Never pass message bodies, passwords, codes, tokens, face data or card data as fields.
+ * Never pass message bodies, passwords, codes, tokens, face data or card data as fields. Every
+ * line goes through `redactFields` as a backstop (MOD-00 behaviour 16): a sensitive field is
+ * written as `[redacted]`, and credentials and e-mail addresses are scrubbed out of text.
  */
 export const createLogger = (level: Level, base: Record<string, unknown> = {}): Logger => {
   const write = (lvl: Level, message: string, fields?: Record<string, unknown>) => {
@@ -19,9 +23,8 @@ export const createLogger = (level: Level, base: Record<string, unknown> = {}): 
     const line = JSON.stringify({
       time: new Date().toISOString(),
       level: lvl,
-      message,
-      ...base,
-      ...fields,
+      message: redactText(message),
+      ...redactFields({ ...base, ...fields }),
     });
     (lvl === 'error' ? console.error : console.log)(line);
   };

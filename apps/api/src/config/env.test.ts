@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { loadEnv } from './env';
 
 const base = {
+  APP_ENV: 'local',
   DATABASE_URL: 'postgres://member@localhost:5432/minitman',
   ADMIN_DATABASE_URL: 'postgres://admin@localhost:5432/minitman',
   REDIS_URL: 'redis://localhost:6379',
@@ -24,4 +25,30 @@ describe('loadEnv', () => {
       /ADMIN_DATABASE_URL/,
     );
   });
+});
+
+test('refuses to start without APP_ENV, so a hosted deploy never falls back to local', () => {
+  const { APP_ENV: _omitted, ...rest } = base;
+  expect(() => loadEnv(rest)).toThrow(/APP_ENV/);
+});
+
+describe('ORIGIN_SHARED_SECRET (MOD-00 rule 9)', () => {
+  const secret = 'a'.repeat(64);
+
+  test('is optional in local', () => {
+    expect(loadEnv(base).ORIGIN_SHARED_SECRET).toBe('');
+  });
+
+  test.each(['dev', 'demo', 'staging', 'production'])(
+    '%s refuses to start without it or with a short one',
+    (APP_ENV) => {
+      expect(() => loadEnv({ ...base, APP_ENV })).toThrow(/ORIGIN_SHARED_SECRET/);
+      expect(() => loadEnv({ ...base, APP_ENV, ORIGIN_SHARED_SECRET: 'a'.repeat(31) })).toThrow(
+        /ORIGIN_SHARED_SECRET/,
+      );
+      expect(loadEnv({ ...base, APP_ENV, ORIGIN_SHARED_SECRET: secret }).ORIGIN_SHARED_SECRET).toBe(
+        secret,
+      );
+    },
+  );
 });
