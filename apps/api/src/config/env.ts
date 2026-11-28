@@ -37,6 +37,19 @@ const EnvSchema = z
      * Required outside `local`, where the API refuses to start without it.
      */
     ORIGIN_SHARED_SECRET: z.string().default(''),
+    /**
+     * Cloudflare R2, the storage port (MOD-00 plan section 4.1 behaviour 14). Optional until the
+     * first caller wires the port in (MOD-04); `r2ConfigFromEnv()` names what is missing then.
+     */
+    R2_ACCOUNT_ID: z.string().default(''),
+    R2_ENDPOINT: z.union([z.literal(''), z.url()]).default(''),
+    R2_ACCESS_KEY_ID: z.string().default(''),
+    R2_SECRET_ACCESS_KEY: z.string().default(''),
+    R2_BUCKET_QUARANTINE: z.string().min(1).default('media-quarantine'),
+    R2_BUCKET_ORIGINALS: z.string().min(1).default('media-originals'),
+    R2_BUCKET_VARIANTS: z.string().min(1).default('media-variants'),
+    R2_BUCKET_EXPORTS: z.string().min(1).default('exports'),
+    R2_BUCKET_BACKUPS: z.string().min(1).default('backups'),
   })
   .superRefine((env, ctx) => {
     if (env.APP_ENV !== 'local' && env.ORIGIN_SHARED_SECRET.length < ORIGIN_SECRET_MIN_LENGTH) {

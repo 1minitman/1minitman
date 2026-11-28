@@ -52,3 +52,17 @@ describe('ORIGIN_SHARED_SECRET (MOD-00 rule 9)', () => {
     },
   );
 });
+
+describe('R2 settings (storage port)', () => {
+  test('are optional, with the bucket names of .env.example', () => {
+    const env = loadEnv(base);
+    expect(env.R2_ACCESS_KEY_ID).toBe('');
+    expect(env.R2_ENDPOINT).toBe('');
+    expect(env.R2_BUCKET_QUARANTINE).toBe('media-quarantine');
+    expect(env.R2_BUCKET_BACKUPS).toBe('backups');
+  });
+
+  test('refuse an endpoint that is not a URL', () => {
+    expect(() => loadEnv({ ...base, R2_ENDPOINT: 'not a url' })).toThrow(/R2_ENDPOINT/);
+  });
+});
