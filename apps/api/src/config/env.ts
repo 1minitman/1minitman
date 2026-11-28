@@ -17,7 +17,11 @@ const ORIGIN_SECRET_MIN_LENGTH = 32;
 /** Everything the API reads from the environment, validated once at start-up. */
 const EnvSchema = z
   .object({
-    APP_ENV: EnvironmentSchema.default('local'),
+    /**
+     * Required, with no default: a hosted deploy that forgot it would otherwise run as `local`,
+     * where `originLock()` refuses nothing (MOD-00 rule 9).
+     */
+    APP_ENV: EnvironmentSchema,
     APP_VERSION: z.string().default('0.1.0'),
     API_PORT: z.coerce.number().int().default(4000),
     /** Member surface (/v1): the app_api login, subject to row-level security. */

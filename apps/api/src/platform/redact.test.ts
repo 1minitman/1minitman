@@ -132,6 +132,23 @@ describe('redactFields', () => {
     expect(JSON.stringify(redactFields(deep))).toContain('[truncated]');
   });
 
+  test('walks class instances and toJSON() results, not only plain objects', () => {
+    class VendorReply {
+      constructor(
+        readonly status: string,
+        readonly access_token: string,
+      ) {}
+    }
+    const wrapped = { toJSON: () => ({ password: 'hunter22', ok: true }) };
+    const out = redactFields({ reply: new VendorReply('ok', 't0ken'), wrapped });
+    expect(out).toEqual({
+      reply: { status: 'ok', access_token: REDACTED },
+      wrapped: { password: REDACTED, ok: true },
+    });
+    expect(JSON.stringify(out)).not.toContain('hunter22');
+    expect(JSON.stringify(out)).not.toContain('t0ken');
+  });
+
   test('keeps numbers, booleans, null and dates as they are', () => {
     const at = new Date(0);
     expect(redactFields({ n: 1, b: false, z: null, at })).toEqual({ n: 1, b: false, z: null, at });

@@ -103,24 +103,30 @@ export const redactText = (text: string): string =>
 
 const MAX_DEPTH = 8;
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> => {
-  if (value === null || typeof value !== 'object') return false;
-  const proto = Object.getPrototypeOf(value) as unknown;
-  return proto === Object.prototype || proto === null;
-};
+const hasToJSON = (value: object): value is { toJSON: () => unknown } =>
+  typeof (value as { toJSON?: unknown }).toJSON === 'function';
 
 const redactValue = (value: unknown, depth: number, seen: WeakSet<object>): unknown => {
   if (typeof value === 'string') return redactText(value);
   if (value instanceof Error) {
     return { name: value.name, message: redactText(value.message) };
   }
-  if (!Array.isArray(value) && !isPlainObject(value)) return value;
+  if (value === null || typeof value !== 'object' || value instanceof Date) return value;
+  // Any other object is walked too, not only plain ones: `JSON.stringify` writes a class
+  // instance's own fields and whatever `toJSON()` returns (a `URL`, a vendor SDK object), so
+  // passing them through unwalked would log a `password` field verbatim.
   if (seen.has(value)) return '[circular]';
   if (depth >= MAX_DEPTH) return '[truncated]';
+  if (!Array.isArray(value) && hasToJSON(value)) {
+    seen.add(value);
+    const out = redactValue(value.toJSON(), depth + 1, seen);
+    seen.delete(value);
+    return out;
+  }
   seen.add(value);
   const out = Array.isArray(value)
     ? value.map((item) => redactValue(item, depth + 1, seen))
-    : redactFieldsAt(value, depth + 1, seen);
+    : redactFieldsAt(value as Record<string, unknown>, depth + 1, seen);
   seen.delete(value);
   return out;
 };
