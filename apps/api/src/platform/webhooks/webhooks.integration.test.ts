@@ -38,7 +38,12 @@ describe.skipIf(!url)('webhook intake on PostgreSQL with a fake vendor', () => {
     const webhooks = createWebhookIntake({ store: postgresWebhookStore(db), queue, logger });
     webhooks.register(createFakeVendor({ secret: SECRET, path: 'fake' }));
     app = createApp({
-      env: { APP_ENV: 'local', APP_VERSION: 'test', CORS_ALLOWED_ORIGINS: [] },
+      env: {
+        APP_ENV: 'local',
+        APP_VERSION: 'test',
+        CORS_ALLOWED_ORIGINS: [],
+        ORIGIN_SHARED_SECRET: '',
+      },
       logger,
       checkReadiness: createCheckReadiness({
         database: { name: 'database', ping: () => Promise.resolve() },

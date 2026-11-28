@@ -14,13 +14,13 @@ export interface RateLimits {
 }
 
 /**
- * The caller's address. Production traffic arrives only through Cloudflare, which sets
- * CF-Connecting-IP; it is trustworthy once the origin accepts Cloudflare traffic alone.
+ * The caller's address. `originLock()` (platform/origin) sets it from `CF-Connecting-IP`, which
+ * is trustworthy because outside `local` the origin serves Cloudflare traffic alone (rule 9).
+ * The client-supplied `X-Forwarded-For` is never read outside `local` (GAP-MOD00-36). A router
+ * mounted without the origin lock (unit tests) falls back to `CF-Connecting-IP` itself.
  */
 export const clientIp = (c: Context<AppEnv>): string =>
-  c.req.header('cf-connecting-ip') ??
-  c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ??
-  'unknown';
+  c.get('clientIp') ?? c.req.header('cf-connecting-ip') ?? 'unknown';
 
 const sha256 = (value: string) => createHash('sha256').update(value).digest('hex');
 

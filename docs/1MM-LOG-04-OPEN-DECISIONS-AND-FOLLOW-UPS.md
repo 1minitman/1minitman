@@ -1097,7 +1097,7 @@ named; "no task yet" means the coordinator adds one to
 - **Task:** `MOD-00-API-05` (which already names log redaction)
 - **Size:** small
 - **Gaps:** GAP-STD16-05
-- **Status:** Open
+- **Status:** Done in `MOD-00-API-05` (P-0021): `redactFields()` in the API and worker loggers
 
 **REP-036** · CMS block schemas live in `packages/contracts` (no new package)
 

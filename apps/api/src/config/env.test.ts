@@ -25,3 +25,24 @@ describe('loadEnv', () => {
     );
   });
 });
+
+describe('ORIGIN_SHARED_SECRET (MOD-00 rule 9)', () => {
+  const secret = 'a'.repeat(64);
+
+  test('is optional in local', () => {
+    expect(loadEnv(base).ORIGIN_SHARED_SECRET).toBe('');
+  });
+
+  test.each(['dev', 'demo', 'staging', 'production'])(
+    '%s refuses to start without it or with a short one',
+    (APP_ENV) => {
+      expect(() => loadEnv({ ...base, APP_ENV })).toThrow(/ORIGIN_SHARED_SECRET/);
+      expect(() => loadEnv({ ...base, APP_ENV, ORIGIN_SHARED_SECRET: 'a'.repeat(31) })).toThrow(
+        /ORIGIN_SHARED_SECRET/,
+      );
+      expect(loadEnv({ ...base, APP_ENV, ORIGIN_SHARED_SECRET: secret }).ORIGIN_SHARED_SECRET).toBe(
+        secret,
+      );
+    },
+  );
+});

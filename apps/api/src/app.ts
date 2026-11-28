@@ -4,14 +4,16 @@ import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import type { Env } from './config/env';
 import { createSystemRouter, type CheckReadiness } from './modules/system';
+import { bodyLimits } from './platform/body-limit';
 import { requestContext } from './platform/http/middleware';
 import { errorHandler, notFoundHandler } from './platform/http/problem';
 import { createRouter } from './platform/http/router';
 import type { Logger } from './platform/logger';
+import { originLock } from './platform/origin';
 import { createSurfaceRouter, createWebhooksRouter, type SurfaceDeps } from './surfaces';
 
 export interface AppDeps {
-  env: Pick<Env, 'APP_ENV' | 'APP_VERSION' | 'CORS_ALLOWED_ORIGINS'>;
+  env: Pick<Env, 'APP_ENV' | 'APP_VERSION' | 'CORS_ALLOWED_ORIGINS' | 'ORIGIN_SHARED_SECRET'>;
   logger: Logger;
   checkReadiness: CheckReadiness;
   surfaces: SurfaceDeps;
@@ -43,6 +45,9 @@ export const createApp = (deps: AppDeps) => {
   const surfaceDeps = deps.surfaces;
 
   app.use('*', requestContext(deps.logger));
+  // Rule 9: outside local only Cloudflare traffic is served, and the client IP comes from
+  // CF-Connecting-IP alone (MOD-00-API-05). First after the request id, so a refusal is logged.
+  app.use('*', originLock({ appEnv: deps.env.APP_ENV, secret: deps.env.ORIGIN_SHARED_SECRET }));
   app.use('*', secureHeaders());
   app.use(
     '*',
@@ -60,6 +65,8 @@ export const createApp = (deps: AppDeps) => {
       maxAge: 600,
     }),
   );
+  // Body-size limits per surface [TR §13.1]; a body over its limit is never read whole.
+  app.use('*', bodyLimits());
   app.onError(errorHandler);
   app.notFound(notFoundHandler);
 

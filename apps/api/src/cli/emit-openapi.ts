@@ -24,6 +24,7 @@ const deps: AppDeps = {
     APP_ENV: 'local',
     APP_VERSION: process.env.APP_VERSION ?? '0.1.0',
     CORS_ALLOWED_ORIGINS: [],
+    ORIGIN_SHARED_SECRET: '',
   },
   logger: createLogger('error'),
   surfaces: {

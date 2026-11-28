@@ -38,3 +38,18 @@ test('errorLabel() gives a driver code or a name, never the message', () => {
   expect(errorLabel(quoted)).toBe('unknown');
   expect(errorLabel(null)).toBe('unknown');
 });
+
+test('sensitive fields and values never reach the line (MOD-00 behaviour 16)', () => {
+  createLogger('info', { service: 'worker' }).warn('send failed for member@example.com', {
+    job: 'otp.send',
+    phone: '+2348000000000',
+    code: '123456',
+    payload: { token: 'abc' },
+    member_id: 'm-1',
+  });
+  const raw = String(log.mock.calls[0]?.[0]);
+  for (const value of ['member@example.com', '+2348000000000', '123456', 'abc']) {
+    expect(raw).not.toContain(value);
+  }
+  expect(JSON.parse(raw)).toMatchObject({ job: 'otp.send', member_id: 'm-1', code: '[redacted]' });
+});

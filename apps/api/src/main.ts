@@ -3,6 +3,7 @@ import { RedisClient } from 'bun';
 import { createApp } from './app';
 import { loadEnv } from './config/env';
 import { createCheckReadiness, postgresProbe, redisProbe } from './modules/system';
+import { MAX_BODY_BYTES } from './platform/body-limit';
 import {
   createAdminGuards,
   createMemberGuards,
@@ -117,6 +118,8 @@ const app = createApp({
 // `fetch` passes the server on, so the WebSocket route can upgrade the request.
 const server = Bun.serve({
   port: env.API_PORT,
+  // The server's own cap, behind the per-surface limits of bodyLimits() (MOD-00-API-05).
+  maxRequestBodySize: MAX_BODY_BYTES,
   fetch: (request, bunServer) => app.fetch(request, bunServer),
   websocket: gateway.websocket,
 });
